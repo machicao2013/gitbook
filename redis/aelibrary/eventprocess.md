@@ -112,4 +112,59 @@ void processInputBuffer(redisClient *c) {
 **具体命令的处理**
 
 具体命令处理是从processCommand函数开始执行的
+```c
+int processCommand(redisClient *c) {
+    // ----------------------省略三百行-----------------------------
+    // 获取要执行的命令,并对命令、命令参数和命令参数的数量进行检查
+    c->cmd = c->lastcmd = lookupCommand(c->argv[0]->ptr);
+    // ----------------------省略三百行-----------------------------
+    // 执行命令
+    if (c->flags & REDIS_MULTI &&
+        c->cmd->proc != execCommand && c->cmd->proc != discardCommand &&
+        c->cmd->proc != multiCommand && c->cmd->proc != watchCommand)
+    {
+        // 如果正在执行事务，
+        // 并且新命令不是 EXEC / DISCARD / MULTI / WATCH
+        // 那么将它们追加到事务队列
+        queueMultiCommand(c);
+        addReply(c,shared.queued);
+    } else {
+        // 执行命令
+        call(c,REDIS_CALL_FULL);
 
+        // 每次执行完命令之后，处理所有就绪列表
+        if (listLength(server.ready_keys))
+            handleClientsBlockedOnLists();
+    }
+
+    return REDIS_OK;
+}
+```
+```c
+// 调用call函数处理具体的命令
+void call(redisClient *c, int flags) {
+    // ----------------------省略三百行-----------------------------
+    // 执行命令
+    c->cmd->proc(c);
+    server.stat_numcommands++;
+    // ----------------------省略三百行-----------------------------
+}
+
+```
+
+**服务器端的回复**
+
+服务端执行完客户端的请求后，还需要回复客户端，具体的回复方法在命令相对应的处理函数中,下面以set命令举例，set命令对应的处理函数是setComand,setComand会调用setGenericCommand，setGenericCommand会调用addReply，具体回复客户端的工作由此函数完成。
+
+addReply调用函数prepareClientToWrite,该函数添加一个写事件到aeEventLoop中，然后由sendReplyToClient进响应的数据发送给客户端，然后从aeEventLoop中删除该写事件。
+```c
+int prepareClientToWrite(redisClient *c) {
+    if (c->flags & REDIS_LUA_CLIENT) return REDIS_OK;
+    if (c->fd <= 0) return REDIS_ERR; /* Fake client */
+    if (c->bufpos == 0 && listLength(c->reply) == 0 &&
+        (c->replstate == REDIS_REPL_NONE || c->replstate == REDIS_REPL_ONLINE) &&
+        aeCreateFileEvent(server.el, c->fd, AE_WRITABLE, sendReplyToClient, c) == AE_ERR)
+        return REDIS_ERR;
+    return REDIS_OK;
+}
+```
