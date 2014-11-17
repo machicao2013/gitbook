@@ -1,0 +1,670 @@
+<!DOCTYPE HTML>
+<html lang="en-US" >
+    
+    <head>
+        
+        <meta charset="UTF-8">
+        <title>aof相关处理 | 我的笔记</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 1.3.3">
+        <meta name="HandheldFriendly" content="true"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../../gitbook/images/apple-touch-icon-precomposed-152.png">
+        <link rel="shortcut icon" href="../../gitbook/images/favicon.ico" type="image/x-icon">
+        
+    
+    
+    <link rel="next" href="../../redis/presistence/advantagesAndDisadvantages.html" />
+    
+    
+    <link rel="prev" href="../../redis/presistence/rdb.html" />
+    
+
+        
+    </head>
+    <body>
+        
+        
+<link rel="stylesheet" href="../../gitbook/style.css">
+
+
+        
+    <div class="book" data-level="2.2.2" data-basepath="../.." data-revision="1416189688893">
+    
+
+<div class="book-summary">
+    <div class="book-search">
+        <input type="text" placeholder="Type to search" class="form-control" />
+    </div>
+    <ul class="summary">
+        
+    	
+    	
+    	
+
+        
+
+        
+    
+        
+        <li class="chapter " data-level="0" data-path="index.html">
+            
+                
+                    <a href="../../index.html">
+                        <i class="fa fa-check"></i>
+                        
+                         Introduction
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1" data-path="gitbook/README.html">
+            
+                
+                    <a href="../../gitbook/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.</b>
+                        
+                         gitbook的使用
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="1.1" data-path="gitbook/install/README.html">
+            
+                
+                    <a href="../../gitbook/install/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.1.</b>
+                        
+                         安装
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="1.1.1" data-path="gitbook/install/nodejs.html">
+            
+                
+                    <a href="../../gitbook/install/nodejs.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.1.1.</b>
+                        
+                         nodejs安装
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1.1.2" data-path="gitbook/install/gitbook.html">
+            
+                
+                    <a href="../../gitbook/install/gitbook.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.1.2.</b>
+                        
+                         gitbook安装
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1.2" data-path="gitbook/usage/README.html">
+            
+                
+                    <a href="../../gitbook/usage/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.2.</b>
+                        
+                         使用
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="1.2.1" data-path="gitbook/usage/command.html">
+            
+                
+                    <a href="../../gitbook/usage/command.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.2.1.</b>
+                        
+                         gitbook命令
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1.2.2" data-path="gitbook/usage/architecture.html">
+            
+                
+                    <a href="../../gitbook/usage/architecture.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.2.2.</b>
+                        
+                         gitbook目录结构
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1.2.3" data-path="gitbook/usage/output.html">
+            
+                
+                    <a href="../../gitbook/usage/output.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.2.3.</b>
+                        
+                         gitbook输出
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1.3" data-path="gitbook/end/README.html">
+            
+                
+                    <a href="../../gitbook/end/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.3.</b>
+                        
+                         小结
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2" data-path="gitbook/README.html">
+            
+                
+                    <a href="../../gitbook/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.</b>
+                        
+                         redis
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="2.1" data-path="redis/aelibrary/README.html">
+            
+                
+                    <a href="../../redis/aelibrary/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.1.</b>
+                        
+                         redis事件库
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="2.1.1" data-path="redis/aelibrary/reactor.html">
+            
+                
+                    <a href="../../redis/aelibrary/reactor.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.1.1.</b>
+                        
+                         reactor
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2.1.2" data-path="redis/aelibrary/aelibrary.html">
+            
+                
+                    <a href="../../redis/aelibrary/aelibrary.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.1.2.</b>
+                        
+                         ae库组成结构
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2.1.3" data-path="redis/aelibrary/flow.html">
+            
+                
+                    <a href="../../redis/aelibrary/flow.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.1.3.</b>
+                        
+                         ae库初始化流程
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2.1.4" data-path="redis/aelibrary/eventprocess.html">
+            
+                
+                    <a href="../../redis/aelibrary/eventprocess.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.1.4.</b>
+                        
+                         ae库事件处理
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2.2" data-path="redis/presistence/README.html">
+            
+                
+                    <a href="../../redis/presistence/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.2.</b>
+                        
+                         rdb &amp; aof
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="2.2.1" data-path="redis/presistence/rdb.html">
+            
+                
+                    <a href="../../redis/presistence/rdb.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.2.1.</b>
+                        
+                         rdb相关的处理
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter active" data-level="2.2.2" data-path="redis/presistence/aof.html">
+            
+                
+                    <a href="../../redis/presistence/aof.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.2.2.</b>
+                        
+                         aof相关处理
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2.2.3" data-path="redis/presistence/advantagesAndDisadvantages.html">
+            
+                
+                    <a href="../../redis/presistence/advantagesAndDisadvantages.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.2.3.</b>
+                        
+                         rdb&amp;aof优缺点
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2.3" data-path="redis/end/README.html">
+            
+                
+                    <a href="../../redis/end/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.3.</b>
+                        
+                         小结
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+
+        
+        <li class="divider"></li>
+        <li>
+            <a href="http://www.gitbook.io/" target="blank" class="gitbook-link">Published using GitBook</a>
+        </li>
+        
+    </ul>
+</div>
+
+    <div class="book-body">
+        <div class="body-inner">
+            <div class="book-header">
+    <!-- Actions Left -->
+    <a href="#" class="btn pull-left toggle-summary" aria-label="Toggle summary"><i class="fa fa-align-justify"></i></a>
+    <a href="#" class="btn pull-left toggle-search" aria-label="Toggle search"><i class="fa fa-search"></i></a>
+    
+    <div id="font-settings-wrapper" class="dropdown pull-left">
+        <a href="#" class="btn toggle-dropdown" aria-label="Toggle font settings"><i class="fa fa-font"></i>
+        </a>
+        <div class="dropdown-menu font-settings">
+    <div class="dropdown-caret">
+        <span class="caret-outer"></span>
+        <span class="caret-inner"></span>
+    </div>
+
+    <div class="buttons">
+        <button type="button" id="reduce-font-size" class="button size-2">A</button>
+        <button type="button" id="enlarge-font-size" class="button size-2">A</button>
+    </div>
+
+    <div class="buttons font-family-list">
+        <button type="button" data-font="0" class="button">Serif</button>
+        <button type="button" data-font="1" class="button">Sans</button>
+    </div>
+
+    <div class="buttons color-theme-list">
+        <button type="button" id="color-theme-preview-0" class="button size-3" data-theme="0">White</button>
+        <button type="button" id="color-theme-preview-1" class="button size-3" data-theme="1">Sepia</button>
+        <button type="button" id="color-theme-preview-2" class="button size-3" data-theme="2">Night</button>
+    </div>
+</div>
+
+    </div>
+
+    <!-- Actions Right -->
+    
+    <div class="dropdown pull-right">
+        <a href="#" class="btn toggle-dropdown" aria-label="Toggle share dropdown"><i class="fa fa-share-alt"></i>
+        </a>
+        <div class="dropdown-menu font-settings dropdown-left">
+            <div class="dropdown-caret">
+                <span class="caret-outer"></span>
+                <span class="caret-inner"></span>
+            </div>
+            <div class="buttons">
+                <button type="button" data-sharing="twitter" class="button">Twitter</button>
+                <button type="button" data-sharing="google-plus" class="button">Google</button>
+                <button type="button" data-sharing="facebook" class="button">Facebook</button>
+                <button type="button" data-sharing="weibo" class="button">Weibo</button>
+                <button type="button" data-sharing="instapaper" class="button">Instapaper</button>
+            </div>
+        </div>
+    </div>
+    
+
+    
+    <a href="#" target="_blank" class="btn pull-right google-plus-sharing-link sharing-link" data-sharing="google-plus" aria-label="Share on Google Plus"><i class="fa fa-google-plus"></i></a>
+    
+    
+    <a href="#" target="_blank" class="btn pull-right facebook-sharing-link sharing-link" data-sharing="facebook" aria-label="Share on Facebook"><i class="fa fa-facebook"></i></a>
+    
+    
+    <a href="#" target="_blank" class="btn pull-right twitter-sharing-link sharing-link" data-sharing="twitter" aria-label="Share on Twitter"><i class="fa fa-twitter"></i></a>
+    
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="../../" >我的笔记</a>
+    </h1>
+</div>
+
+            <div class="page-wrapper" tabindex="-1">
+                <div class="page-inner">
+                
+                
+                    <section class="normal" id="section-gitbook_19">
+                    
+                        <h1 id="aof">aof持久化</h1>
+<p><strong>aof相关的配置</strong></p>
+<pre><code class="lang-bash">appendonly no
+appendfsync always
+appendfsync everysec
+appendfsync no
+</code></pre>
+<p>appendonly no表示关闭aof功能
+appendfsync always表示每一次都要写aof,会阻塞进程
+appendfsync everysec表示每一秒写aof，后台线程执行,如果需要aof生效，则配置此种方式
+appendfsync no表示不主动写aof,只有在redis被关闭，或者aof功能被关闭，或者在定时任务里面才会执行</p>
+<p>**redisServer中与aof相关的配置</p>
+<pre><code class="lang-bash">int aof_state;                  /* REDIS_AOF_(ON|OFF|WAIT_REWRITE) */
+int aof_fsync;                  /* Kind of fsync() policy */
+char *aof_filename;             /* Name of the AOF file */
+int aof_no_fsync_on_rewrite;    /* Don<span class="hljs-string">'t fsync if a rewrite is in prog. */
+int aof_rewrite_perc;           /* Rewrite AOF if % growth is &gt; M and... */
+off_t aof_rewrite_min_size;     /* the AOF file is at least N bytes. */
+off_t aof_rewrite_base_size;    /* AOF size on latest startup or rewrite. */
+off_t aof_current_size;         /* AOF current size. */
+int aof_rewrite_scheduled;      /* Rewrite once BGSAVE terminates. */
+pid_t aof_child_pid;            /* PID if rewriting process */
+list *aof_rewrite_buf_blocks;   /* Hold changes during an AOF rewrite. */
+sds aof_buf;      /* AOF buffer, written before entering the event loop */
+int aof_fd;       /* File descriptor of currently selected AOF file */
+int aof_selected_db; /* Currently selected DB in AOF */
+time_t aof_flush_postponed_start; /* UNIX time of postponed AOF flush */
+time_t aof_last_fsync;            /* UNIX time of last fsync() */
+time_t aof_rewrite_time_last;   /* Time used by last AOF rewrite run. */
+time_t aof_rewrite_time_start;  /* Current AOF rewrite start time. */
+int aof_lastbgrewrite_status;   /* REDIS_OK or REDIS_ERR */
+unsigned long aof_delayed_fsync;  /* delayed AOF fsync() counter */</span>
+</code></pre>
+<p><strong>aof触发条件</strong></p>
+<ul>
+<li>bgrewrite</li>
+<li>serverCron</li>
+</ul>
+<p><strong>bgrewriteaof处理</strong></p>
+<p>bgwriteaof命令对应的是bgwriteaofCommand函数，bgwriteaofCommand的处理流程如下：</p>
+<pre><code class="lang-c"><span class="hljs-keyword">void</span> bgrewriteaofCommand(redisClient *c) {
+    <span class="hljs-comment">// 在aof和rdb没有进行的情况下才会执行重写，即调用rewriteAppendOnlyFileBackground函数</span>
+    <span class="hljs-keyword">if</span> (server.aof_child_pid != -<span class="hljs-number">1</span>) {
+        addReplyError(c,<span class="hljs-string">"Background append only file rewriting already in progress"</span>);
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (server.rdb_child_pid != -<span class="hljs-number">1</span>) {
+        <span class="hljs-comment">// 如果此时正在执行rdb，则将aof_rewrite_scheduled值为1，在serverCron函数中回进行处理，也就是延迟处理aof</span>
+        server.aof_rewrite_scheduled = <span class="hljs-number">1</span>;
+        addReplyStatus(c,<span class="hljs-string">"Background append only file rewriting scheduled"</span>);
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (rewriteAppendOnlyFileBackground() == REDIS_OK) {
+        addReplyStatus(c,<span class="hljs-string">"Background append only file rewriting started"</span>);
+    } <span class="hljs-keyword">else</span> {
+        addReply(c,shared.err);
+    }
+}
+</code></pre>
+<p>从上面的处理来看，在aof没有进行,或者没有正在进行rdb的情况下才会执行重写，即调用rewriteAppendOnlyFileBackground函数,该函数会重启一个进程，进行重写aof的工作，具体的代码如下：</p>
+<pre><code class="lang-c"><span class="hljs-keyword">int</span> rewriteAppendOnlyFileBackground(<span class="hljs-keyword">void</span>) {
+    <span class="hljs-comment">// ....</span>
+    <span class="hljs-comment">// 后台重写正在执行</span>
+    <span class="hljs-keyword">if</span> (server.aof_child_pid != -<span class="hljs-number">1</span>) <span class="hljs-keyword">return</span> REDIS_ERR;
+
+    <span class="hljs-comment">// 开始时间</span>
+    start = ustime();
+    <span class="hljs-keyword">if</span> ((childpid = fork()) == <span class="hljs-number">0</span>) {
+        <span class="hljs-keyword">char</span> tmpfile[<span class="hljs-number">256</span>];
+
+        <span class="hljs-comment">/* Child */</span>
+        <span class="hljs-comment">// 关闭网络连接</span>
+        <span class="hljs-keyword">if</span> (server.ipfd &gt; <span class="hljs-number">0</span>) close(server.ipfd);
+        <span class="hljs-keyword">if</span> (server.sofd &gt; <span class="hljs-number">0</span>) close(server.sofd);
+
+        <span class="hljs-comment">// 创建临时文件</span>
+        <span class="hljs-built_in">snprintf</span>(tmpfile,<span class="hljs-number">256</span>,<span class="hljs-string">"temp-rewriteaof-bg-%d.aof"</span>, (<span class="hljs-keyword">int</span>) getpid());
+        <span class="hljs-comment">// 重写</span>
+        <span class="hljs-keyword">if</span> (rewriteAppendOnlyFile(tmpfile) == REDIS_OK) {
+            <span class="hljs-comment">// 向父进程发送信号, exitFromChild 定义于 redis.c</span>
+            exitFromChild(<span class="hljs-number">0</span>);
+        } <span class="hljs-keyword">else</span> {
+            exitFromChild(<span class="hljs-number">1</span>);
+        }
+    } <span class="hljs-keyword">else</span> {
+        <span class="hljs-comment">/* Parent */</span>
+        server.stat_fork_time = ustime()-start;
+
+        <span class="hljs-comment">// 如果创建子进程失败，直接返回</span>
+        <span class="hljs-keyword">if</span> (childpid == -<span class="hljs-number">1</span>) {
+            <span class="hljs-comment">// log</span>
+            <span class="hljs-keyword">return</span> REDIS_ERR;
+        }
+
+        <span class="hljs-comment">//.....,此处省略三百行</span>
+        <span class="hljs-keyword">return</span> REDIS_OK;
+    }
+    <span class="hljs-keyword">return</span> REDIS_OK; <span class="hljs-comment">/* unreached */</span>
+}
+</code></pre>
+<p><strong>serverCron处理</strong></p>
+<p>在aof功能开启的情况下，会维持以下三个变量：</p>
+<ul>
+<li>记录当前aof文件大小的变量aof_current_size。</li>
+<li>记录最后一次aof重写之后，aof文件大小的变量aof_rewrite_base_size</li>
+<li>增长百分比变量aof_rewrite_perc</li>
+</ul>
+<p>在serverCron中，会检查以下条件是否全部满足，如果是的话，就会触发自动的aof重写：</p>
+<ul>
+<li>没有bgsave命令在执行</li>
+<li>没有bgwriteaof在进行</li>
+<li>当前aof文件和最后一次aof重写后的大小之间的比率大于等于指定的增长百分比</li>
+</ul>
+<p>具体的处理如下：</p>
+<pre><code class="lang-c"><span class="hljs-comment">// 如果用户执行 BGREWRITEAOF 命令的话(如果此时rdb正在执行，则不会立即执行</span>
+<span class="hljs-comment">// bgrewrtieaof，而会将aof_rewrite_scheduled值为1)，在后台开始 AOF 重写</span>
+<span class="hljs-keyword">if</span> (server.rdb_child_pid == -<span class="hljs-number">1</span> &amp;&amp; server.aof_child_pid == -<span class="hljs-number">1</span> &amp;&amp;
+    server.aof_rewrite_scheduled)
+{
+    rewriteAppendOnlyFileBackground();
+}
+</code></pre>
+
+                    
+                    </section>
+                
+                
+                </div>
+            </div>
+        </div>
+
+        
+        <a href="../../redis/presistence/rdb.html" class="navigation navigation-prev " aria-label="Previous page: rdb相关的处理"><i class="fa fa-angle-left"></i></a>
+        
+        
+        <a href="../../redis/presistence/advantagesAndDisadvantages.html" class="navigation navigation-next " aria-label="Next page: rdb&amp;aof优缺点"><i class="fa fa-angle-right"></i></a>
+        
+    </div>
+</div>
+
+        
+<script src="../../gitbook/app.js"></script>
+
+    
+    <script src="https://cdn.mathjax.org/mathjax/2.4-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+    
+    <script src="../../gitbook/plugins/gitbook-plugin-mathjax/plugin.js"></script>
+    
+
+<script>
+require(["gitbook"], function(gitbook) {
+    var config = {"fontSettings":{"theme":null,"family":"sans","size":2}};
+    gitbook.start(config);
+});
+</script>
+
+        
+    </body>
+    
+</html>
