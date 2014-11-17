@@ -1,5 +1,7 @@
 #!/bin/bash
 
+test -d _book && rm -rf _book/*
+
 gitbook build .
 
 test -d book_end || mkdir book_end

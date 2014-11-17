@@ -10,7 +10,6 @@
 * [redis](gitbook/README.md) *
     - [redis事件库](redis/aelibrary/README.md)
         - [reactor](redis/aelibrary/reactor.md)
-        - [ae库组成结构](redis/aelibrary/aelibrary.md)
         - [ae库初始化流程](redis/aelibrary/flow.md)
         - [ae库事件处理](redis/aelibrary/eventprocess.md)
     - [rdb & aof](redis/presistence/README.md)
