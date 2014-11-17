@@ -6,8 +6,10 @@ test -d book_end || mkdir book_end
 
 cp -r _book/* book_end/
 
-git checkout gh-pages
+cd book_end
 
 git add .
 
 git commit -a -m "publish"
+
+git push origin gh-pages

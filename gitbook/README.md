@@ -22,5 +22,5 @@ GitBook支持输出多种文档格式，如：
 
 ## 本项目地址
 
-- 仓库：
-- 在线阅读：
+- 仓库：https://github.com/machicao2013/gitbook.git
+- 在线阅读：http://machicao2013.github.io/gitbook/
