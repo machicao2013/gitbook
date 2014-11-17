@@ -32,7 +32,7 @@
 
 
         
-    <div class="book" data-level="2.1.1" data-basepath="../.." data-revision="1416189688893">
+    <div class="book" data-level="2.1.1" data-basepath="../.." data-revision="1416206008606">
     
 
 <div class="book-summary">
@@ -507,6 +507,96 @@
             <div class="page-wrapper" tabindex="-1">
                 <div class="page-inner">
                 
+                
+                    <section class="normal" id="section-gitbook_15">
+                    
+                        <h1 id="reactor">reactor模式简介</h1>
+<p><strong>reactor模式</strong></p>
+<p>reactor是在事件处理模型中常用的一种设计模式。主要的角色以及它们之间的关系如下图所示：</p>
+<center><img src="../../imgs/reactor.jpg" alt=""></center>
+
+<p>从上图可以看出，reactor主要有四种角色：</p>
+<ol>
+<li>Reactor是reactor模式中最为重要的角色，它是该模式向用户提供接口的类。用户可以向reactor中注册EventHandler，当Reactor发现用户注册的fd上有事件发生时，会回调用户注册的事件处理函数。</li>
+<li>SynchrousEventDemultiplexer用来检测用户注册的fd上是否有事件发生，然后通知reactor有什么事件发生(可读或者可写)。</li>
+<li>EventHandler是用户和Reactor打交道的工具，用户通过Reactor注册自己的EventHandler，可以告诉reactor在特定的事件发生时帮助用户做什么。</li>
+<li>ConcreteEventHandler是EventHandler的子类。</li>
+</ol>
+<p><strong>reactor模式与redis事件库的对应关系</strong></p>
+<ol>
+<li>redis ae库的Reactor就是aeEventLoop结构体和相关的函数(因为redis是C语言写的)。具体的代码如下：<pre><code class="lang-c"><span class="hljs-keyword">struct</span> aeEventLoop {
+ <span class="hljs-comment">// 目前已注册的最大描述符</span>
+ <span class="hljs-keyword">int</span> maxfd;   <span class="hljs-comment">/* highest file descriptor currently registered */</span>
+ <span class="hljs-comment">// 目前已追踪的最大描述符</span>
+ <span class="hljs-keyword">int</span> setsize; <span class="hljs-comment">/* max number of file descriptors tracked */</span>
+ <span class="hljs-comment">// 用于生成时间事件 id</span>
+ <span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> timeEventNextId;
+ <span class="hljs-comment">// 最后一次执行时间事件的时间</span>
+ time_t lastTime;     <span class="hljs-comment">/* Used to detect system clock skew */</span>
+ <span class="hljs-comment">// 已注册的文件事件</span>
+ aeFileEvent *events; <span class="hljs-comment">/* Registered events */</span>
+ <span class="hljs-comment">// 已就绪的文件事件</span>
+ aeFiredEvent *fired; <span class="hljs-comment">/* Fired events */</span>
+ <span class="hljs-comment">// 时间事件</span>
+ aeTimeEvent *timeEventHead;
+ <span class="hljs-comment">// 事件处理器的开关</span>
+ <span class="hljs-keyword">int</span> stop;
+ <span class="hljs-comment">// 多路复用库的私有数据</span>
+ <span class="hljs-keyword">void</span> *apidata; <span class="hljs-comment">/* This is used for polling API specific data */</span>
+ <span class="hljs-comment">// 在处理事件前要执行的函数</span>
+ aeBeforeSleepProc *beforesleep;
+} aeEventLoop;
+</code></pre>
+<pre><code class="lang-c"><span class="hljs-comment">// 相关的函数</span>
+<span class="hljs-keyword">int</span> aeCreateFileEvent(aeEventLoop *eventLoop, <span class="hljs-keyword">int</span> fd, <span class="hljs-keyword">int</span> mask,
+ aeFileProc *proc, <span class="hljs-keyword">void</span> *clientData);
+<span class="hljs-keyword">void</span> aeDeleteFileEvent(aeEventLoop *eventLoop, <span class="hljs-keyword">int</span> fd, <span class="hljs-keyword">int</span> mask);
+<span class="hljs-keyword">int</span> aeGetFileEvents(aeEventLoop *eventLoop, <span class="hljs-keyword">int</span> fd);
+<span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> aeCreateTimeEvent(aeEventLoop *eventLoop, <span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> milliseconds,
+ aeTimeProc *proc, <span class="hljs-keyword">void</span> *clientData,
+ aeEventFinalizerProc *finalizerProc);
+<span class="hljs-keyword">int</span> aeDeleteTimeEvent(aeEventLoop *eventLoop, <span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> id);
+<span class="hljs-keyword">int</span> aeProcessEvents(aeEventLoop *eventLoop, <span class="hljs-keyword">int</span> flags);
+</code></pre>
+</li>
+<li>SynchrousEventDemultiplexer在redis中的实现是通过epoll/select/poll实现，组织方式如下：<pre><code class="lang-c"><span class="hljs-preprocessor">#ifdef HAVE_EVPORT</span>
+ <span class="hljs-preprocessor">#<span class="hljs-keyword">include</span> "ae_evport.c"</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">else</span></span>
+ <span class="hljs-preprocessor">#ifdef HAVE_EPOLL</span>
+     <span class="hljs-preprocessor">#<span class="hljs-keyword">include</span> "ae_epoll.c"</span>
+ <span class="hljs-preprocessor">#<span class="hljs-keyword">else</span></span>
+     <span class="hljs-preprocessor">#ifdef HAVE_KQUEUE</span>
+         <span class="hljs-preprocessor">#<span class="hljs-keyword">include</span> "ae_kqueue.c"</span>
+     <span class="hljs-preprocessor">#<span class="hljs-keyword">else</span></span>
+         <span class="hljs-preprocessor">#<span class="hljs-keyword">include</span> "ae_select.c"</span>
+     <span class="hljs-preprocessor">#<span class="hljs-keyword">endif</span></span>
+ <span class="hljs-preprocessor">#<span class="hljs-keyword">endif</span></span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">endif</span></span>
+</code></pre>
+</li>
+<li>EventHandler在redis中没有抽象。</li>
+<li>ConcreteEventHandler在redis中对应两个，时间事件aeTimeEvent和文件事件aeFileEvent，具体的定义如下。<pre><code class="lang-c"><span class="hljs-keyword">struct</span> aeTimeEvent {
+ <span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> id; <span class="hljs-comment">// time event identifier.</span>
+ <span class="hljs-keyword">long</span> when_sec; <span class="hljs-comment">// seconds</span>
+ <span class="hljs-keyword">long</span> when_ms; <span class="hljs-comment">// milliseconds</span>
+ aeTimeProc *timeProc;
+ aeEventFinalizerProc *finalizerProc;
+ <span class="hljs-keyword">void</span> *clientData;
+ <span class="hljs-keyword">struct</span> aeTimeEvent *next;
+} aeTimeEvent;
+</code></pre>
+<pre><code class="lang-c"><span class="hljs-keyword">struct</span> aeFileEvent {
+ <span class="hljs-keyword">int</span> mask; <span class="hljs-comment">// one of AE_(READABLE|WRITABLE)</span>
+ aeFileProc *rfileProc;
+ aeFileProc *wfileProc;
+ <span class="hljs-keyword">void</span> *clientData;
+} aeFileEvent;
+</code></pre>
+</li>
+</ol>
+
+                    
+                    </section>
                 
                 
                 </div>
