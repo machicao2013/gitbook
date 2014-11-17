@@ -32,7 +32,7 @@
 
 
         
-    <div class="book" data-level="2.1.4" data-basepath="../.." data-revision="1416206008606">
+    <div class="book" data-level="2.1.3" data-basepath="../.." data-revision="1416240081874">
     
 
 <div class="book-summary">
@@ -276,29 +276,13 @@
         </li>
     
         
-        <li class="chapter " data-level="2.1.2" data-path="redis/aelibrary/aelibrary.html">
-            
-                
-                    <a href="../../redis/aelibrary/aelibrary.html">
-                        <i class="fa fa-check"></i>
-                        
-                            <b>2.1.2.</b>
-                        
-                         ae库组成结构
-                    </a>
-                
-            
-            
-        </li>
-    
-        
-        <li class="chapter " data-level="2.1.3" data-path="redis/aelibrary/flow.html">
+        <li class="chapter " data-level="2.1.2" data-path="redis/aelibrary/flow.html">
             
                 
                     <a href="../../redis/aelibrary/flow.html">
                         <i class="fa fa-check"></i>
                         
-                            <b>2.1.3.</b>
+                            <b>2.1.2.</b>
                         
                          ae库初始化流程
                     </a>
@@ -308,13 +292,13 @@
         </li>
     
         
-        <li class="chapter active" data-level="2.1.4" data-path="redis/aelibrary/eventprocess.html">
+        <li class="chapter active" data-level="2.1.3" data-path="redis/aelibrary/eventprocess.html">
             
                 
                     <a href="../../redis/aelibrary/eventprocess.html">
                         <i class="fa fa-check"></i>
                         
-                            <b>2.1.4.</b>
+                            <b>2.1.3.</b>
                         
                          ae库事件处理
                     </a>
@@ -507,6 +491,165 @@
             <div class="page-wrapper" tabindex="-1">
                 <div class="page-inner">
                 
+                
+                    <section class="normal" id="section-gitbook_12">
+                    
+                        <h1 id="redis">redis处理命令的一般流程</h1>
+<p><strong>先上一张图</strong></p>
+<center><img src="../../imgs/command_process.png" alt=""></center>
+<center>redis处理命令的一般流程</center>
+
+<p><strong>网络部分的处理</strong></p>
+<p>一个请求到达redis server后，redis首先会接收这个连接(在networking.c/acceptTcpHandler中处理)，然后生成一个redisClient对象,并向aeEventLoop中添加一个读事件。大致的代码如下:</p>
+<pre><code class="lang-c"><span class="hljs-comment">//接收链接</span>
+<span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> acceptCommonHandler(<span class="hljs-keyword">int</span> fd, <span class="hljs-keyword">int</span> flags) {
+    redisClient *c;
+    <span class="hljs-comment">// 创建新客户端</span>
+    createClient(fd);
+    <span class="hljs-comment">// 如果超过最大打开客户端数量，那么关闭这个客户端</span>
+    <span class="hljs-keyword">if</span> (listLength(server.clients) &gt; server.maxclients) {
+        <span class="hljs-keyword">if</span> (write(c-&gt;fd,err,<span class="hljs-built_in">strlen</span>(err)) == -<span class="hljs-number">1</span>) {
+        }
+        server.stat_rejected_conn++;
+        <span class="hljs-comment">// 释放客户端</span>
+        freeClient(c);
+        <span class="hljs-keyword">return</span>;
+    }
+    server.stat_numconnections++;
+    c-&gt;flags |= flags;
+}
+</code></pre>
+<pre><code class="lang-c"><span class="hljs-comment">// 创建新客户端的处理</span>
+lient *createClient(<span class="hljs-keyword">int</span> fd) {
+    redisClient *c = zmalloc(<span class="hljs-keyword">sizeof</span>(redisClient));
+    <span class="hljs-comment">// 因为 Redis 命令总在客户端的上下文中执行，</span>
+    <span class="hljs-comment">// 有时候为了在服务器内部执行命令，需要使用伪客户端来执行命令</span>
+    <span class="hljs-comment">// 在 fd == -1 时，创建的客户端为伪终端</span>
+    <span class="hljs-keyword">if</span> (fd != -<span class="hljs-number">1</span>) {
+        anetNonBlock(NULL,fd);
+        anetTcpNoDelay(NULL,fd);
+        <span class="hljs-comment">// 接收客户端数据为readQueryFromClient</span>
+        <span class="hljs-keyword">if</span> (aeCreateFileEvent(server.el,fd,AE_READABLE, readQueryFromClient, c) == AE_ERR)
+        {
+            close(fd);
+            zfree(c);
+            <span class="hljs-keyword">return</span> NULL;
+        }
+    }
+    <span class="hljs-comment">// ----------------------省略三百行-----------------------------</span>
+}
+</code></pre>
+<pre><code class="lang-c"><span class="hljs-comment">// 接收客户端数据</span>
+<span class="hljs-keyword">void</span> readQueryFromClient(aeEventLoop *el, <span class="hljs-keyword">int</span> fd, <span class="hljs-keyword">void</span> *privdata, <span class="hljs-keyword">int</span> mask) {
+    redisClient *c = (redisClient*) privdata;
+    <span class="hljs-comment">// ----------------------省略三百行-----------------------------</span>
+    <span class="hljs-comment">// 读入到 buf</span>
+    nread = read(fd, c-&gt;querybuf+qblen, readlen);
+    <span class="hljs-comment">// 读入缓存不能超过限制，否则断开并清除客户端</span>
+    <span class="hljs-keyword">if</span> (sdslen(c-&gt;querybuf) &gt; server.client_max_querybuf_len) {
+        sds ci = getClientInfoString(c), bytes = sdsempty();
+
+        bytes = sdscatrepr(bytes,c-&gt;querybuf,<span class="hljs-number">64</span>);
+        redisLog(REDIS_WARNING,<span class="hljs-string">"Closing client that reached max query buffer length: %s (qbuf initial bytes: %s)"</span>, ci, bytes);
+        sdsfree(ci);
+        sdsfree(bytes);
+        freeClient(c);
+        <span class="hljs-keyword">return</span>;
+    }
+    <span class="hljs-comment">// 执行命令</span>
+    processInputBuffer(c);
+    server.current_client = NULL;
+}
+</code></pre>
+<pre><code class="lang-c"><span class="hljs-comment">// 判断命令是否接收完成</span>
+<span class="hljs-keyword">void</span> processInputBuffer(redisClient *c) {
+    <span class="hljs-keyword">while</span>(sdslen(c-&gt;querybuf)) {
+        <span class="hljs-comment">/* Immediately abort if the client is in the middle of something. */</span>
+        <span class="hljs-keyword">if</span> (c-&gt;flags &amp; REDIS_BLOCKED) <span class="hljs-keyword">return</span>;
+        <span class="hljs-keyword">if</span> (c-&gt;flags &amp; REDIS_CLOSE_AFTER_REPLY) <span class="hljs-keyword">return</span>;
+        <span class="hljs-comment">/* Determine request type when unknown. */</span>
+        <span class="hljs-keyword">if</span> (!c-&gt;reqtype) {
+            <span class="hljs-comment">// querybuf[0]='*'为redis新的协议</span>
+            <span class="hljs-keyword">if</span> (c-&gt;querybuf[<span class="hljs-number">0</span>] == <span class="hljs-string">'*'</span>) {
+                c-&gt;reqtype = REDIS_REQ_MULTIBULK;
+            } <span class="hljs-keyword">else</span> {
+                c-&gt;reqtype = REDIS_REQ_INLINE;
+            }
+        }
+        <span class="hljs-comment">// 判断协议数据是否接收完整</span>
+        <span class="hljs-keyword">if</span> (c-&gt;reqtype == REDIS_REQ_INLINE) {
+            <span class="hljs-keyword">if</span> (processInlineBuffer(c) != REDIS_OK) <span class="hljs-keyword">break</span>;
+        } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (c-&gt;reqtype == REDIS_REQ_MULTIBULK) {
+            <span class="hljs-keyword">if</span> (processMultibulkBuffer(c) != REDIS_OK) <span class="hljs-keyword">break</span>;
+        } <span class="hljs-keyword">else</span> {
+            redisPanic(<span class="hljs-string">"Unknown request type"</span>);
+        }
+
+        <span class="hljs-comment">/* Multibulk processing could see a &lt;= 0 length. */</span>
+        <span class="hljs-keyword">if</span> (c-&gt;argc == <span class="hljs-number">0</span>) {
+            resetClient(c);
+        } <span class="hljs-keyword">else</span> {
+            <span class="hljs-comment">// 数据接收完整执行具体的命令</span>
+            <span class="hljs-keyword">if</span> (processCommand(c) == REDIS_OK)
+                resetClient(c);
+        }
+    }
+}
+</code></pre>
+<p><strong>具体命令的处理</strong></p>
+<p>具体命令处理是从processCommand函数开始执行的</p>
+<pre><code class="lang-c"><span class="hljs-keyword">int</span> processCommand(redisClient *c) {
+    <span class="hljs-comment">// ----------------------省略三百行-----------------------------</span>
+    <span class="hljs-comment">// 获取要执行的命令,并对命令、命令参数和命令参数的数量进行检查</span>
+    c-&gt;cmd = c-&gt;lastcmd = lookupCommand(c-&gt;argv[<span class="hljs-number">0</span>]-&gt;ptr);
+    <span class="hljs-comment">// ----------------------省略三百行-----------------------------</span>
+    <span class="hljs-comment">// 执行命令</span>
+    <span class="hljs-keyword">if</span> (c-&gt;flags &amp; REDIS_MULTI &amp;&amp;
+        c-&gt;cmd-&gt;proc != execCommand &amp;&amp; c-&gt;cmd-&gt;proc != discardCommand &amp;&amp;
+        c-&gt;cmd-&gt;proc != multiCommand &amp;&amp; c-&gt;cmd-&gt;proc != watchCommand)
+    {
+        <span class="hljs-comment">// 如果正在执行事务，</span>
+        <span class="hljs-comment">// 并且新命令不是 EXEC / DISCARD / MULTI / WATCH</span>
+        <span class="hljs-comment">// 那么将它们追加到事务队列</span>
+        queueMultiCommand(c);
+        addReply(c,shared.queued);
+    } <span class="hljs-keyword">else</span> {
+        <span class="hljs-comment">// 执行命令</span>
+        call(c,REDIS_CALL_FULL);
+
+        <span class="hljs-comment">// 每次执行完命令之后，处理所有就绪列表</span>
+        <span class="hljs-keyword">if</span> (listLength(server.ready_keys))
+            handleClientsBlockedOnLists();
+    }
+
+    <span class="hljs-keyword">return</span> REDIS_OK;
+}
+</code></pre>
+<pre><code class="lang-c"><span class="hljs-comment">// 调用call函数处理具体的命令</span>
+<span class="hljs-keyword">void</span> call(redisClient *c, <span class="hljs-keyword">int</span> flags) {
+    <span class="hljs-comment">// ----------------------省略三百行-----------------------------</span>
+    <span class="hljs-comment">// 执行命令</span>
+    c-&gt;cmd-&gt;proc(c);
+    server.stat_numcommands++;
+    <span class="hljs-comment">// ----------------------省略三百行-----------------------------</span>
+}
+</code></pre>
+<p><strong>服务器端的回复</strong></p>
+<p>服务端执行完客户端的请求后，还需要回复客户端，具体的回复方法在命令相对应的处理函数中,下面以set命令举例，set命令对应的处理函数是setComand,setComand会调用setGenericCommand，setGenericCommand会调用addReply，具体回复客户端的工作由此函数完成。</p>
+<p>addReply调用函数prepareClientToWrite,该函数添加一个写事件到aeEventLoop中，然后由sendReplyToClient进响应的数据发送给客户端，然后从aeEventLoop中删除该写事件。</p>
+<pre><code class="lang-c"><span class="hljs-keyword">int</span> prepareClientToWrite(redisClient *c) {
+    <span class="hljs-keyword">if</span> (c-&gt;flags &amp; REDIS_LUA_CLIENT) <span class="hljs-keyword">return</span> REDIS_OK;
+    <span class="hljs-keyword">if</span> (c-&gt;fd &lt;= <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span> REDIS_ERR; <span class="hljs-comment">/* Fake client */</span>
+    <span class="hljs-keyword">if</span> (c-&gt;bufpos == <span class="hljs-number">0</span> &amp;&amp; listLength(c-&gt;reply) == <span class="hljs-number">0</span> &amp;&amp;
+        (c-&gt;replstate == REDIS_REPL_NONE || c-&gt;replstate == REDIS_REPL_ONLINE) &amp;&amp;
+        aeCreateFileEvent(server.el, c-&gt;fd, AE_WRITABLE, sendReplyToClient, c) == AE_ERR)
+        <span class="hljs-keyword">return</span> REDIS_ERR;
+    <span class="hljs-keyword">return</span> REDIS_OK;
+}
+</code></pre>
+
+                    
+                    </section>
                 
                 
                 </div>
