@@ -7,7 +7,7 @@
         - [gitbook目录结构](gitbook/usage/architecture.md)
         - [gitbook输出](gitbook/usage/output.md)
     - [小结](gitbook/end/README.md)
-* [redis](gitbook/README.md) *
+* [redis](redis/README.md) *
     - [redis事件库](redis/aelibrary/README.md)
         - [reactor](redis/aelibrary/reactor.md)
         - [ae库初始化流程](redis/aelibrary/flow.md)
