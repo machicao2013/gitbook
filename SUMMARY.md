@@ -17,7 +17,7 @@
         - [aof相关处理](redis/presistence/aof.md)
         - [rdb&aof优缺点](redis/presistence/advantagesAndDisadvantages.md)
     - [redis数据结构](redis/datastructure/README.md)
-        - [hash表](redis/datastructure/hash.md)
+        - [字典](redis/datastructure/dict.md)
     - [replication](redis/replication/README.md)
     - [小结](redis/end/README.md)
 
