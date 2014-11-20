@@ -32,7 +32,7 @@
 
 
         
-    <div class="book" data-level="2.5.1" data-basepath="../.." data-revision="1416485102676">
+    <div class="book" data-level="2.5.1" data-basepath="../.." data-revision="1416485169383">
     
 
 <div class="book-summary">
@@ -600,7 +600,7 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_20">
+                    <section class="normal" id="section-gitbook_21">
                     
                         <h1 id="redisaof">redis在关闭aof文件的处理</h1>
 <p>redis在完成aof的备份操作后，会产生两个aof文件，一个是父进程使用的aof(假设文件名为A)，一个是子进程的aof(假设文件名为tmp_A)。子进程对其aof完成写操作后，会以信号的方式通知父进程处理，父进程收到信号后，会使用文件名A替换掉tmp_A。可能我们本能的想法是rename(tmp_A,A)，但是这个调用可能会阻塞主进程。redis做了一些工作防止进程被阻塞。</p>
