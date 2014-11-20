@@ -4,7 +4,7 @@
     <head>
         
         <meta charset="UTF-8">
-        <title>rdb相关的处理 | 我的笔记</title>
+        <title>字典 | 我的笔记</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.3.3">
@@ -17,10 +17,10 @@
         
     
     
-    <link rel="next" href="../../redis/presistence/aof.html" />
+    <link rel="next" href="../../redis/replication/README.html" />
     
     
-    <link rel="prev" href="../../redis/presistence/README.html" />
+    <link rel="prev" href="../../redis/datastructure/README.html" />
     
 
         
@@ -32,7 +32,7 @@
 
 
         
-    <div class="book" data-level="2.2.1" data-basepath="../.." data-revision="1416485102676">
+    <div class="book" data-level="2.3.1" data-basepath="../.." data-revision="1416485102676">
     
 
 <div class="book-summary">
@@ -330,7 +330,7 @@
                 
     
         
-        <li class="chapter active" data-level="2.2.1" data-path="redis/presistence/rdb.html">
+        <li class="chapter " data-level="2.2.1" data-path="redis/presistence/rdb.html">
             
                 
                     <a href="../../redis/presistence/rdb.html">
@@ -400,7 +400,7 @@
                 
     
         
-        <li class="chapter " data-level="2.3.1" data-path="redis/datastructure/dict.html">
+        <li class="chapter active" data-level="2.3.1" data-path="redis/datastructure/dict.html">
             
                 
                     <a href="../../redis/datastructure/dict.html">
@@ -600,85 +600,240 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_24">
+                    <section class="normal" id="section-gitbook_15">
                     
-                        <h1 id="rdb">rdb持久化</h1>
-<p><strong><strong>rdb相关的配置</strong></strong></p>
-<pre><code class="lang-bash">save none
-save <span class="hljs-number">900</span> <span class="hljs-number">1</span>
-save <span class="hljs-number">300</span> <span class="hljs-number">10</span>
-save <span class="hljs-number">60</span>  <span class="hljs-number">1000</span>
+                        <h1 id="redis">redis字典的实现</h1>
+<p>hashtable在redis中占有非常重要的地位。其db就是一个大的字典。其实现的渐进式rehash更是值得我们学习。</p>
+<h2 id="redis-dict">redis dict涉及的数据结构</h2>
+<p>dict主要涉及到的数据结构如下:</p>
+<pre><code class="lang-c"><span class="hljs-comment">// hash table的项</span>
+<span class="hljs-keyword">typedef</span> <span class="hljs-keyword">struct</span> dictEntry {
+    <span class="hljs-keyword">void</span> *key;
+    <span class="hljs-keyword">union</span> {
+        <span class="hljs-keyword">void</span> *val;
+        uint64_t u64;
+        int64_t s64;
+    } v;
+    <span class="hljs-keyword">struct</span> dictEntry *next;
+} dictEntry;
 </code></pre>
-<p>save none表示不生成rdb，save m n表示在m秒内有n次以上改变则会进行rdb</p>
-<p><strong>redisServer中与rdb相关的项</strong></p>
-<pre><code class="lang-c"><span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> dirty;                <span class="hljs-comment">/* Changes to DB from the last save */</span>
-<span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> dirty_before_bgsave;  <span class="hljs-comment">/* Used to restore dirty on failed BGSAVE */</span>
-pid_t rdb_child_pid;            <span class="hljs-comment">/* PID of RDB saving child */</span>
-<span class="hljs-keyword">struct</span> saveparam *saveparams;   <span class="hljs-comment">/* Save points array for RDB,即保存上面rdb相关的配置 */</span>
-<span class="hljs-keyword">int</span> saveparamslen;              <span class="hljs-comment">/* Number of saving points */</span>
-<span class="hljs-keyword">char</span> *rdb_filename;             <span class="hljs-comment">/* Name of RDB file */</span>
-<span class="hljs-keyword">int</span> rdb_compression;            <span class="hljs-comment">/* Use compression in RDB? */</span>
-<span class="hljs-keyword">int</span> rdb_checksum;               <span class="hljs-comment">/* Use RDB checksum? */</span>
-time_t lastsave;                <span class="hljs-comment">/* Unix time of last save succeeede */</span>
-time_t rdb_save_time_last;      <span class="hljs-comment">/* Time used by last RDB save run. */</span>
-time_t rdb_save_time_start;     <span class="hljs-comment">/* Current RDB save start time. */</span>
-<span class="hljs-keyword">int</span> lastbgsave_status;          <span class="hljs-comment">/* REDIS_OK or REDIS_ERR */</span>
-<span class="hljs-keyword">int</span> stop_writes_on_bgsave_err;  <span class="hljs-comment">/* Don't allow writes if can't BGSAVE */</span>
+<pre><code class="lang-c"><span class="hljs-comment">// hash的类型,不同的字典有不同的hash类型</span>
+<span class="hljs-keyword">typedef</span> <span class="hljs-keyword">struct</span> dictType {
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> (*hashFunction)(<span class="hljs-keyword">const</span> <span class="hljs-keyword">void</span> *key);
+    <span class="hljs-keyword">void</span> *(*keyDup)(<span class="hljs-keyword">void</span> *privdata, <span class="hljs-keyword">const</span> <span class="hljs-keyword">void</span> *key);
+    <span class="hljs-keyword">void</span> *(*valDup)(<span class="hljs-keyword">void</span> *privdata, <span class="hljs-keyword">const</span> <span class="hljs-keyword">void</span> *obj);
+    <span class="hljs-keyword">int</span> (*keyCompare)(<span class="hljs-keyword">void</span> *privdata, <span class="hljs-keyword">const</span> <span class="hljs-keyword">void</span> *key1, <span class="hljs-keyword">const</span> <span class="hljs-keyword">void</span> *key2);
+    <span class="hljs-keyword">void</span> (*keyDestructor)(<span class="hljs-keyword">void</span> *privdata, <span class="hljs-keyword">void</span> *key);
+    <span class="hljs-keyword">void</span> (*valDestructor)(<span class="hljs-keyword">void</span> *privdata, <span class="hljs-keyword">void</span> *obj);
+} dictType;
 </code></pre>
-<p><strong>rdb触发条件</strong></p>
-<ul>
-<li>save</li>
-<li>bgsave</li>
-<li>serverCron</li>
-</ul>
-<p>rdb相关的处理都在rdb.h和rdb.c中</p>
-<p><strong>save处理</strong></p>
-<p>客户端输入save指令后，服务端会调用saveCommand进行相应的处理，如果后台保存工作正在进行，则直接返回，否则回调用rdbSave作相应的处理，此时会<em>阻塞进程</em></p>
-<pre><code class="lang-c"><span class="hljs-keyword">void</span> saveCommand(redisClient *c) {
-    <span class="hljs-comment">// 如果后台正在保存rdb文件，则当前保存回失败</span>
-    <span class="hljs-keyword">if</span> (server.rdb_child_pid != -<span class="hljs-number">1</span>) {
-        addReplyError(c,<span class="hljs-string">"Background save already in progress"</span>);
-        <span class="hljs-keyword">return</span>;
+<pre><code class="lang-c"><span class="hljs-comment">// hash表</span>
+<span class="hljs-keyword">typedef</span> <span class="hljs-keyword">struct</span> dictht {
+    dictEntry **table;
+    <span class="hljs-comment">// 指针数组的大小</span>
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">long</span> size;
+    <span class="hljs-comment">// 指针数组的长度掩码，用于计算索引值</span>
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">long</span> sizemask;
+    <span class="hljs-comment">// 哈希表现有的节点数量</span>
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">long</span> used;
+} dictht;
+</code></pre>
+<pre><code class="lang-c"><span class="hljs-comment">// 一个字典有两个hash表，用于渐进式的rehash</span>
+<span class="hljs-keyword">typedef</span> <span class="hljs-keyword">struct</span> dict {
+    <span class="hljs-comment">// 特定于类型的处理函数</span>
+    dictType *type;
+    <span class="hljs-comment">// 类型处理函数的私有数据</span>
+    <span class="hljs-keyword">void</span> *privdata;
+    <span class="hljs-comment">// 哈希表（2个）</span>
+    dictht ht[<span class="hljs-number">2</span>];
+    <span class="hljs-comment">// 记录 rehash 进度的标志，值为-1 表示 rehash 未进行</span>
+    <span class="hljs-keyword">int</span> rehashidx;
+    <span class="hljs-comment">// 当前正在运作的安全迭代器数量</span>
+    <span class="hljs-keyword">int</span> iterators;
+} dict;
+</code></pre>
+<h2 id="redis-dict">redis dict的部分操作</h2>
+<h3 id="dict">dict的扩容</h3>
+<p><strong>什么时候会扩容</strong></p>
+<p>每次在添加元素的时候(dictAdd,dictAddRaw)时候，会调用_dictExpandIfNeeded函数,_dictExpandIfNeeded函数会调用dictExpand函数，该函数会将rehashidx置为0，然后就会启动rehash过程。</p>
+<pre><code class="lang-c"><span class="hljs-keyword">static</span> <span class="hljs-keyword">int</span> _dictExpandIfNeeded(dict *d)
+{
+    <span class="hljs-comment">// 已经在渐进式 rehash 当中，直接返回</span>
+    <span class="hljs-keyword">if</span> (dictIsRehashing(d)) <span class="hljs-keyword">return</span> DICT_OK;
+
+    <span class="hljs-comment">// 如果哈希表为空，那么将它扩展为初始大小</span>
+    <span class="hljs-keyword">if</span> (d-&gt;ht[<span class="hljs-number">0</span>].size == <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span> dictExpand(d, DICT_HT_INITIAL_SIZE);
+
+    <span class="hljs-comment">// 如果哈希表ç=acp#onPopupPost()</span>
+    <span class="hljs-comment">// 已用节点数 &gt;= 哈希表的大小，</span>
+    <span class="hljs-comment">// 并且以下条件任一个为真：</span>
+    <span class="hljs-comment">//   1) dict_can_resize 为真</span>
+    <span class="hljs-comment">//   2) 已用节点数除以哈希表大小之比大于</span>
+    <span class="hljs-comment">//      dict_force_resize_ratio(默认5)</span>
+    <span class="hljs-comment">// 那么调用 dictExpand 对哈希表进行扩展</span>
+    <span class="hljs-comment">// 扩展的体积至少为已使用节点数的两倍</span>
+    <span class="hljs-keyword">if</span> (d-&gt;ht[<span class="hljs-number">0</span>].used &gt;= d-&gt;ht[<span class="hljs-number">0</span>].size &amp;&amp;
+        (dict_can_resize ||
+         d-&gt;ht[<span class="hljs-number">0</span>].used/d-&gt;ht[<span class="hljs-number">0</span>].size &gt; dict_force_resize_ratio))
+    {
+        <span class="hljs-keyword">return</span> dictExpand(d, d-&gt;ht[<span class="hljs-number">0</span>].used*<span class="hljs-number">2</span>);
+    }
+    <span class="hljs-keyword">return</span> DICT_OK;
+}
+</code></pre>
+<pre><code class="lang-c"><span class="hljs-keyword">int</span> dictExpand(dict *d, <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">long</span> size)
+{
+    dictht n; <span class="hljs-comment">/* the new hash table */</span>
+
+    <span class="hljs-comment">// 计算哈希表的真实大小</span>
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">long</span> realsize = _dictNextPower(size);
+    <span class="hljs-comment">/* the size is invalid if it is smaller than the number of
+     * elements already inside the hash table */</span>
+    <span class="hljs-keyword">if</span> (dictIsRehashing(d) || d-&gt;ht[<span class="hljs-number">0</span>].used &gt; size)
+        <span class="hljs-keyword">return</span> DICT_ERR;
+
+    <span class="hljs-comment">/* Allocate the new hash table and initialize all pointers to NULL */</span>
+    n.size = realsize;
+    n.sizemask = realsize-<span class="hljs-number">1</span>;
+    n.table = zcalloc(realsize*<span class="hljs-keyword">sizeof</span>(dictEntry*));
+    n.used = <span class="hljs-number">0</span>;
+
+    <span class="hljs-comment">/* Is this the first initialization? If so it's not really a rehashing
+     * we just set the first hash table so that it can accept keys. */</span>
+    <span class="hljs-comment">// 如果 ht[0] 为空，那么这就是一次创建新哈希表行为</span>
+    <span class="hljs-comment">// 将新哈希表设置为 ht[0] ，然后返回</span>
+    <span class="hljs-keyword">if</span> (d-&gt;ht[<span class="hljs-number">0</span>].table == NULL) {
+        d-&gt;ht[<span class="hljs-number">0</span>] = n;
+        <span class="hljs-keyword">return</span> DICT_OK;
     }
 
-    <span class="hljs-comment">// 保存所有数据库数据到指定的文件</span>
-    <span class="hljs-keyword">if</span> (rdbSave(server.rdb_filename) == REDIS_OK) {
-        addReply(c,shared.ok);
-    } <span class="hljs-keyword">else</span> {
-        addReply(c,shared.err);
-    }
-}
-</code></pre>
-<p><strong>bgsave处理</strong></p>
-<p>客户端输入bgsave指令后，服务端会调用bgsaveCommand进行处理，如果后台保存工作正在进行，则直接返回，否在调用rdbSaveBackground作相应处理，此时rdbSaveBackground会启动一个专门的进程来进行后台保存工作.</p>
-<pre><code class="lang-c"><span class="hljs-keyword">void</span> bgsaveCommand(redisClient *c) {
-    <span class="hljs-comment">// 如果后台正在重写rdb，或者重写aof，则此次重写rdb会失败</span>
-    <span class="hljs-keyword">if</span> (server.rdb_child_pid != -<span class="hljs-number">1</span>) {
-        addReplyError(c,<span class="hljs-string">"Background save already in progress"</span>);
-    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (server.aof_child_pid != -<span class="hljs-number">1</span>) {
-        addReplyError(c,<span class="hljs-string">"Can't BGSAVE while AOF log rewriting is in progress"</span>);
-        <span class="hljs-comment">// 开始后台写入</span>
-    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (rdbSaveBackground(server.rdb_filename) == REDIS_OK) {
-        addReplyStatus(c,<span class="hljs-string">"Background saving started"</span>);
-    } <span class="hljs-keyword">else</span> {
-        addReply(c,shared.err);
-    }
-}
-</code></pre>
-<p><strong>serverCron处理</strong></p>
-<p>serverCron里面执行的是redis的定时任务，每隔一定的周期都会执行一次，此函数里面与rdb相关的操作如下</p>
-<pre><code class="lang-c"><span class="hljs-keyword">for</span> (j = <span class="hljs-number">0</span>; j &lt; server.saveparamslen; j++) {
-    <span class="hljs-keyword">struct</span> saveparam *sp = server.saveparams+j;
+    <span class="hljs-comment">/* Prepare a second hash table for incremental rehashing */</span>
+    <span class="hljs-comment">// 如果 ht[0] 不为空，那么这就是一次扩展字典的行为</span>
+    <span class="hljs-comment">// 将新哈希表设置为 ht[1] ，并打开 rehash 标识</span>
+    d-&gt;ht[<span class="hljs-number">1</span>] = n;
+    d-&gt;rehashidx = <span class="hljs-number">0</span>;
 
-    <span class="hljs-keyword">if</span> (server.dirty &gt;= sp-&gt;changes &amp;&amp;
-        server.unixtime-server.lastsave &gt; sp-&gt;seconds) {
-        redisLog(REDIS_NOTICE,<span class="hljs-string">"%d changes in %d seconds. Saving..."</span>,
-            sp-&gt;changes, sp-&gt;seconds);
-        rdbSaveBackground(server.rdb_filename);
-        <span class="hljs-keyword">break</span>;
-    }
+    <span class="hljs-keyword">return</span> DICT_OK;
 }
 </code></pre>
+<p><strong>扩容过程什么时候进行</strong></p>
+<p>当rehashidx在dictExpand中被置为0时，由下面三个函数完成扩容的工作。</p>
+<ol>
+<li>int dictRehash(dict *d, int n);</li>
+<li>int dictRehashMilliseconds(dict *d, int ms);</li>
+<li>void _dictRehashStep(dict *d);</li>
+</ol>
+<p>dictRehash执行的是n步rehash,即dictRehash每执行一次，会移动n个hash桶. dictRehashMilliseconds在serverCron中会被调用. _dictRehashStep在每次增，删，查的过程都会被执行一次。</p>
+<p><strong>扩容进行的过程</strong></p>
+<p>扩容的具体过程是在dictRehash函数中完成的。</p>
+<pre><code class="lang-c"><span class="hljs-keyword">int</span> dictRehash(dict *d, <span class="hljs-keyword">int</span> n) {
+    <span class="hljs-keyword">if</span> (!dictIsRehashing(d)) <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+    <span class="hljs-keyword">while</span>(n--) {
+        dictEntry *de, *nextde;
+
+        <span class="hljs-comment">// 如果 ht[0] 已经为空，那么迁移完毕</span>
+        <span class="hljs-comment">// 用 ht[1] 代替原来的 ht[0]</span>
+        <span class="hljs-keyword">if</span> (d-&gt;ht[<span class="hljs-number">0</span>].used == <span class="hljs-number">0</span>) {
+
+            <span class="hljs-comment">// 释放 ht[0] 的哈希表数组</span>
+            zfree(d-&gt;ht[<span class="hljs-number">0</span>].table);
+
+            <span class="hljs-comment">// 将 ht[0] 指向 ht[1]</span>
+            d-&gt;ht[<span class="hljs-number">0</span>] = d-&gt;ht[<span class="hljs-number">1</span>];
+
+            <span class="hljs-comment">// 清空 ht[1] 的指针</span>
+            _dictReset(&amp;d-&gt;ht[<span class="hljs-number">1</span>]);
+
+            <span class="hljs-comment">// 关闭 rehash 标识</span>
+            d-&gt;rehashidx = -<span class="hljs-number">1</span>;
+
+            <span class="hljs-comment">// 通知调用者， rehash 完毕</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+        }
+
+        assert(d-&gt;ht[<span class="hljs-number">0</span>].size &gt; (<span class="hljs-keyword">unsigned</span>)d-&gt;rehashidx);
+        <span class="hljs-comment">// 移动到数组中首个不为 NULL 链表的索引上</span>
+        <span class="hljs-keyword">while</span>(d-&gt;ht[<span class="hljs-number">0</span>].table[d-&gt;rehashidx] == NULL) d-&gt;rehashidx++;
+        <span class="hljs-comment">// 指向链表头</span>
+        de = d-&gt;ht[<span class="hljs-number">0</span>].table[d-&gt;rehashidx];
+        <span class="hljs-comment">// 将链表内的所有元素从 ht[0] 迁移到 ht[1]</span>
+        <span class="hljs-comment">// 因为桶内的元素通常只有一个，或者不多于某个特定比率</span>
+        <span class="hljs-comment">// 所以可以将这个操作看作 O(1)</span>
+        <span class="hljs-keyword">while</span>(de) {
+            <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> h;
+
+            nextde = de-&gt;next;
+
+            <span class="hljs-comment">/* Get the index in the new hash table */</span>
+            <span class="hljs-comment">// 计算元素在 ht[1] 的哈希值</span>
+            h = dictHashKey(d, de-&gt;key) &amp; d-&gt;ht[<span class="hljs-number">1</span>].sizemask;
+
+            <span class="hljs-comment">// 添加节点到 ht[1] ，调整指针</span>
+            de-&gt;next = d-&gt;ht[<span class="hljs-number">1</span>].table[h];
+            d-&gt;ht[<span class="hljs-number">1</span>].table[h] = de;
+
+            <span class="hljs-comment">// 更新计数器</span>
+            d-&gt;ht[<span class="hljs-number">0</span>].used--;
+            d-&gt;ht[<span class="hljs-number">1</span>].used++;
+
+            de = nextde;
+        }
+
+        <span class="hljs-comment">// 设置指针为 NULL ，方便下次 rehash 时跳过</span>
+        d-&gt;ht[<span class="hljs-number">0</span>].table[d-&gt;rehashidx] = NULL;
+
+        <span class="hljs-comment">// 前进至下一索引</span>
+        d-&gt;rehashidx++;
+    }
+
+    <span class="hljs-comment">// 通知调用者，还有元素等待 rehash</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;
+}
+</code></pre>
+<p><strong>others</strong></p>
+<ol>
+<li>对于查找,删除操作，如果正在进行rehash，则查找操作会涉及到ht[0]和ht[1]。</li>
+<li>对于添加操作，如果正在进行rehash，则直接添加到ht[1]。</li>
+<li>dict.c中有个变量dict_can_resize控制着是否允许自动调整hash表的大小，该变量的改变主要靠如下两个函数：<pre><code class="lang-c"> <span class="hljs-keyword">void</span> dictEnableResize(<span class="hljs-keyword">void</span>) {
+     dict_can_resize = <span class="hljs-number">1</span>;
+ }
+ <span class="hljs-keyword">void</span> dictDisableResize(<span class="hljs-keyword">void</span>) {
+     dict_can_resize = <span class="hljs-number">0</span>;
+ }
+</code></pre>
+ 在系统运行有后台进程时，不允许自动自动调整大小，这是为了为了使得类linux系统的copy-on-write有更好的性能（没有调整大小， 就没有rehash，这样父进程的db没有改变，子进程就不需要真的copy）。在后台子进程退出后，又会允许resize。</li>
+</ol>
+<h3 id="dict">dict缩容</h3>
+<p>在redis中，hashtable不是只能扩容，还能够缩容。其过程和扩容一样：</p>
+<ol>
+<li>创建一个比ht[0]-&gt;table小的ht[1]-&gt;table</li>
+<li>将ht[0]-&gt;table中的所有数据迁移到ht[1]-&gt;table</li>
+<li>将ht[0]的数据清空，并将ht[1]替换为ht[0]</li>
+</ol>
+<p>判断字典的缩容的条件是在redis.c/htNeedsResize函数中，缩容是在dictReSize中完成。最后会在serverCron中被调用。</p>
+<pre><code class="lang-c"><span class="hljs-keyword">int</span> htNeedsResize(dict *dict) {
+    <span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> size, used;
+
+    <span class="hljs-comment">// 哈希表大小</span>
+    size = dictSlots(dict);
+
+    <span class="hljs-comment">// 哈希表已用节点数量</span>
+    used = dictSize(dict);
+
+    <span class="hljs-comment">// 当哈希表的大小大于 DICT_HT_INITIAL_SIZE(4)</span>
+    <span class="hljs-comment">// 并且字典的填充率低于 REDIS_HT_MINFILL(10) 时</span>
+    <span class="hljs-comment">// 返回 1</span>
+    <span class="hljs-keyword">return</span> (size &amp;&amp; used &amp;&amp; size &gt; DICT_HT_INITIAL_SIZE &amp;&amp;
+        (used*<span class="hljs-number">100</span>/size &lt; REDIS_HT_MINFILL));
+}
+</code></pre>
+<h3 id="">小结</h3>
+<ol>
+<li>Redis字典的底层实现是哈希表，每个字典使用两个哈希表，一般情况下只使用0号哈希表，只有在rehash进行时，才会同时使用0号和1号哈希表。</li>
+<li>哈希表使用链地址法来解决冲突的问题。</li>
+<li>rehash可以用于扩容或者缩容哈希表。</li>
+<li>对哈希表的rehash是分多次、渐进式地进行的。</li>
+</ol>
 
                     
                     </section>
@@ -689,10 +844,10 @@ time_t rdb_save_time_start;     <span class="hljs-comment">/* Current RDB save s
         </div>
 
         
-        <a href="../../redis/presistence/README.html" class="navigation navigation-prev " aria-label="Previous page: rdb &amp; aof"><i class="fa fa-angle-left"></i></a>
+        <a href="../../redis/datastructure/README.html" class="navigation navigation-prev " aria-label="Previous page: redis数据结构"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../../redis/presistence/aof.html" class="navigation navigation-next " aria-label="Next page: aof相关处理"><i class="fa fa-angle-right"></i></a>
+        <a href="../../redis/replication/README.html" class="navigation navigation-next " aria-label="Next page: replication"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>

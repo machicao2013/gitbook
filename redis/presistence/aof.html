@@ -32,7 +32,7 @@
 
 
         
-    <div class="book" data-level="2.2.2" data-basepath="../.." data-revision="1416240081874">
+    <div class="book" data-level="2.2.2" data-basepath="../.." data-revision="1416485102676">
     
 
 <div class="book-summary">
@@ -226,10 +226,10 @@
         </li>
     
         
-        <li class="chapter " data-level="2" data-path="gitbook/README.html">
+        <li class="chapter " data-level="2" data-path="redis/README.html">
             
                 
-                    <a href="../../gitbook/README.html">
+                    <a href="../../redis/README.html">
                         <i class="fa fa-check"></i>
                         
                             <b>2.</b>
@@ -383,13 +383,121 @@
         </li>
     
         
-        <li class="chapter " data-level="2.3" data-path="redis/end/README.html">
+        <li class="chapter " data-level="2.3" data-path="redis/datastructure/README.html">
+            
+                
+                    <a href="../../redis/datastructure/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.3.</b>
+                        
+                         redis数据结构
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="2.3.1" data-path="redis/datastructure/dict.html">
+            
+                
+                    <a href="../../redis/datastructure/dict.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.3.1.</b>
+                        
+                         字典
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2.4" data-path="redis/replication/README.html">
+            
+                
+                    <a href="../../redis/replication/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.4.</b>
+                        
+                         replication
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2.5" data-path="redis/others/README.html">
+            
+                
+                    <a href="../../redis/others/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.5.</b>
+                        
+                         others
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="2.5.1" data-path="redis/others/closeAofFile.html">
+            
+                
+                    <a href="../../redis/others/closeAofFile.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.5.1.</b>
+                        
+                         redis关闭旧aof文件时的处理
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2.5.2" data-path="redis/others/memory.html">
+            
+                
+                    <a href="../../redis/others/memory.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.5.2.</b>
+                        
+                         redis内存处理
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2.6" data-path="redis/end/README.html">
             
                 
                     <a href="../../redis/end/README.html">
                         <i class="fa fa-check"></i>
                         
-                            <b>2.3.</b>
+                            <b>2.6.</b>
                         
                          小结
                     </a>
@@ -492,7 +600,7 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_18">
+                    <section class="normal" id="section-gitbook_25">
                     
                         <h1 id="aof">aof持久化</h1>
 <p><strong>aof相关的配置</strong></p>
@@ -505,7 +613,7 @@ appendfsync no
 appendfsync always表示每一次都要写aof,会阻塞进程
 appendfsync everysec表示每一秒写aof，后台线程执行,如果需要aof生效，则配置此种方式
 appendfsync no表示不主动写aof,只有在redis被关闭，或者aof功能被关闭，或者在定时任务里面才会执行</p>
-<p>**redisServer中与aof相关的配置</p>
+<p><strong>redisServer中与aof相关的配置</strong></p>
 <pre><code class="lang-bash">int aof_state;                  /* REDIS_AOF_(ON|OFF|WAIT_REWRITE) */
 int aof_fsync;                  /* Kind of fsync() policy */
 char *aof_filename;             /* Name of the AOF file */
