@@ -168,3 +168,8 @@ int prepareClientToWrite(redisClient *c) {
     return REDIS_OK;
 }
 ```
+
+**接收命令到发送数据的流程**
+
+<center>![](../../imgs/redis_protocol_command.png)<center>
+<center>接收数据到发送响应给客户端的流程</center>
