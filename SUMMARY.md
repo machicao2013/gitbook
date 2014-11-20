@@ -19,5 +19,8 @@
     - [redis数据结构](redis/datastructure/README.md)
         - [字典](redis/datastructure/dict.md)
     - [replication](redis/replication/README.md)
+    - [others](redis/others/README.md)
+        - [redis关闭旧aof文件时的处理](redis/others/closeAofFile.md)
+        - [redis内存处理](redis/others/memory.md)
     - [小结](redis/end/README.md)
 

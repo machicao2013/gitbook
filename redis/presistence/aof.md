@@ -15,7 +15,7 @@ appendfsync always表示每一次都要写aof,会阻塞进程
 appendfsync everysec表示每一秒写aof，后台线程执行,如果需要aof生效，则配置此种方式
 appendfsync no表示不主动写aof,只有在redis被关闭，或者aof功能被关闭，或者在定时任务里面才会执行
 
-**redisServer中与aof相关的配置
+**redisServer中与aof相关的配置**
 ```bash
 int aof_state;                  /* REDIS_AOF_(ON|OFF|WAIT_REWRITE) */
 int aof_fsync;                  /* Kind of fsync() policy */
