@@ -11,6 +11,36 @@ redis在完成aof的备份操作后，会产生两个aof文件，一个是父进
     2. 如果A文件存在，直接调用rename(B, A)后，会导致调用unlink(A),此时会阻塞。
 2. 如果fd_A != -1,则A文件一定存在,如果直接调用rename(B,A),如果把fd_A = fd_B, 会导致close(fd_A),然后调用unlink(A),这个同样会阻塞。
 
+redis的解决方案：
+    1. 如果A文件不存在，则直接rename(B, A)
+    2. 否则，打开A文件，然后rename(B, A)，此时不会导致unlink(A)，因为A文件描述符的引用计数不为0,然后在一个后台线程专门的执行close()操作。
+    3. 伪代码如下：
+        ```c
+            // original_A代表原始的打开A文件的描述符，如果A不存在或者没有打开，则original_A = -1
+            if(original_A == -1)
+                fd_A = open(A); // 如果A文件不存在，则fd_A = -1
+            else
+                fd_A = -1;      // A存在且已经打开
+
+            fd_B = open(B);
+
+            if(rename(B, A) == -1) {
+                close(fd_B);
+                if(fd_A != -1)
+                    close(fd_A);
+            }
+
+            if(original_A == -1)
+                close(fd_B);
+            else {
+                fd_A = original_A;
+                original_A = fd_B;
+            }
+
+            if(fd_A != -1)
+                backgroundCloseFile(fd_A);
+        ```
+
 其实现在aof.c/backgroundRewriteDoneHandler函数进行处理：
 ```c
 void backgroundRewriteDoneHandler(int exitcode, int bysignal) {
