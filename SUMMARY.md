@@ -7,6 +7,9 @@
         - [gitbook目录结构](gitbook/usage/architecture.md)
         - [gitbook输出](gitbook/usage/output.md)
     - [小结](gitbook/end/README.md)
+* [vim插件](vim/README.md) *
+    - [安装](vim/install.md)
+    - [我使用的插件](vim/plugin.md)
 * [redis](redis/README.md) *
     - [redis事件库](redis/aelibrary/README.md)
         - [reactor](redis/aelibrary/reactor.md)
@@ -19,8 +22,10 @@
     - [redis数据结构](redis/datastructure/README.md)
         - [字典](redis/datastructure/dict.md)
     - [replication](redis/replication/README.md)
+        - [replication相关的配置](redis/replication/configuration.md)
+        - [replication的运作原理](redis/replication/principle.md)
+        - [replication部分同步](redis/replication/PartialResynchronization.md)
     - [others](redis/others/README.md)
         - [redis关闭旧aof文件时的处理](redis/others/closeAofFile.md)
         - [redis内存处理](redis/others/memory.md)
     - [小结](redis/end/README.md)
-
