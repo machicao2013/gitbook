@@ -4,7 +4,7 @@
     <head>
         
         <meta charset="UTF-8">
-        <title>gitbook的使用 | 我的笔记</title>
+        <title>安装 | 我的笔记</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.3.3">
@@ -17,10 +17,10 @@
         
     
     
-    <link rel="next" href="../gitbook/install/README.html" />
+    <link rel="next" href="../vim/plugin.html" />
     
     
-    <link rel="prev" href="../index.html" />
+    <link rel="prev" href="../vim/README.html" />
     
 
         
@@ -32,7 +32,7 @@
 
 
         
-    <div class="book" data-level="1" data-basepath=".." data-revision="1416757263190">
+    <div class="book" data-level="2.1" data-basepath=".." data-revision="1416757263190">
     
 
 <div class="book-summary">
@@ -64,7 +64,7 @@
         </li>
     
         
-        <li class="chapter active" data-level="1" data-path="gitbook/README.html">
+        <li class="chapter " data-level="1" data-path="gitbook/README.html">
             
                 
                     <a href="../gitbook/README.html">
@@ -243,7 +243,7 @@
                 
     
         
-        <li class="chapter " data-level="2.1" data-path="vim/install.html">
+        <li class="chapter active" data-level="2.1" data-path="vim/install.html">
             
                 
                     <a href="../vim/install.html">
@@ -708,32 +708,72 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_2">
+                    <section class="normal" id="section-gitbook_31">
                     
-                        <h1 id="gitbook-">Gitbook 使用入门</h1>
-<blockquote>
-<p>GitBook 是一个基于 Node.js 的命令行工具，可使用 Github/Git 和 Markdown 来制作精美的电子书。</p>
-</blockquote>
-<p>本书将简单介绍如何安装、编写、生成、发布一本在线图书。</p>
-<h2 id="">支持格式</h2>
-<p>GitBook支持输出多种文档格式，如：</p>
-<ul>
-<li>静态站点：GitBook默认输出该种格式，生成的静态站点可直接托管到Github Pages服务上；</li>
-<li>PDF：需要安装gitbook-pdf；</li>
-<li>eBook：需要安装ebook-convert；</li>
-<li>单HTML网页：支持将内容输出为单页的HTML，不过一般用在将电子书格式转换为PDF或eBook的中间过程；</li>
-<li>JSON：一般用于电子书的调试或元数据提取。</li>
-</ul>
-<h2 id="gitbook">Gitbook项目地址</h2>
-<ul>
-<li>GitBook项目官网：<a href="http://www.gitbook.io" target="_blank">http://www.gitbook.io</a></li>
-<li>GitBook Github地址：<a href="https://github.com/GitbookIO/gitbook" target="_blank">https://github.com/GitbookIO/gitbook</a></li>
-</ul>
-<h2 id="">本项目地址</h2>
-<ul>
-<li>仓库：<a href="https://github.com/machicao2013/gitbook.git" target="_blank">https://github.com/machicao2013/gitbook.git</a></li>
-<li>在线阅读：<a href="http://machicao2013.github.io/gitbook/" target="_blank">http://machicao2013.github.io/gitbook/</a></li>
-</ul>
+                        <h1 id="vim">vim的安装</h1>
+<p>首先安装依赖</p>
+<pre><code class="lang-sh"><span class="hljs-shebang">#!/bin/bash
+</span>
+<span class="hljs-keyword">if</span> [[ <span class="hljs-string">"a`whoami`"</span> != <span class="hljs-string">"aroot"</span> ]]; <span class="hljs-keyword">then</span>
+    <span class="hljs-built_in">echo</span> <span class="hljs-string">"You Must Be root"</span>
+    <span class="hljs-keyword">exit</span> <span class="hljs-number">1</span>
+<span class="hljs-keyword">fi</span>
+
+yum install -y ncurses-devel ruby ruby-devel lua lua-devel luajit luajit-devel ctags mercurial python python-devel python3 \ python3-devel tcl-devel perl perl-devel perl-ExtUtils-ParseXS perl-ExtUtils-XSpp perl-ExtUtils-CBuilder perl-ExtUtils-Embed cmake
+</code></pre>
+<p>因为我使用的YouCompleteMe等插件，vim不能简单的使用yum或者apt-get安装，这里提供一个脚本。该脚本包含了插件的安装.</p>
+<pre><code class="lang-sh"><span class="hljs-shebang">#!/bin/bash
+</span>
+base_dir=`<span class="hljs-built_in">pwd</span>`
+vim_install_dir=/home/machicao/opt/vim74a
+
+test <span class="hljs-operator">-d</span> <span class="hljs-variable">${vim_install_dir}</span> || mkdir -p <span class="hljs-variable">${vim_install_dir}</span>
+
+test <span class="hljs-operator">-d</span> ~/.vim/bundle/vundle || mkdir -p ~/.vim/bundle/vundle
+
+git clone https://github.com/gmarik/vundle.git ~/.vim/bundle/vundle
+
+<span class="hljs-keyword">if</span> [[! <span class="hljs-operator">-f</span> ./vim-<span class="hljs-number">7.4</span>a.tar.bz2 ]]; <span class="hljs-keyword">then</span>
+    wget ftp://ftp.vim.org/pub/vim/unstable/unix/vim-<span class="hljs-number">7.4</span>a.tar.bz2
+<span class="hljs-keyword">fi</span>
+
+<span class="hljs-keyword">if</span> [[! <span class="hljs-operator">-f</span> ./vim-<span class="hljs-number">7.4</span>a.tar.bz2 ]]; <span class="hljs-keyword">then</span>
+    <span class="hljs-built_in">echo</span> <span class="hljs-string">"./vim-7.4a.tar.bz2 does not exists"</span>
+    <span class="hljs-keyword">exit</span> <span class="hljs-number">1</span>
+<span class="hljs-keyword">fi</span>
+
+tar jxvf ./vim-<span class="hljs-number">7.4</span>a.tar.bz2
+
+<span class="hljs-built_in">cd</span>  ./vim74a
+
+./configure --with-features=huge --enable-perlinterp --enable-pythoninterp --enable-rubyinterp --enable-cscope --enable-multibyte --disable-gui --prefix=<span class="hljs-variable">${vim_install_dir}</span>
+
+VIMRUNTIMEDIR=<span class="hljs-variable">${vim_install_dir}</span>
+
+make VIMRUNTIMEDIR=<span class="hljs-variable">${VIMRUNTIMEDIR}</span>
+
+make install
+
+cp -rf runtime/* <span class="hljs-variable">${vim_install_dir}</span>/
+
+<span class="hljs-comment"># install vundle</span>
+install_dir=<span class="hljs-string">"/home/maxingsong/.vim/bundle/vundle"</span>
+
+test <span class="hljs-operator">-d</span> <span class="hljs-variable">${install_dir}</span> || mkdir -p <span class="hljs-variable">${install_dir}</span>
+
+git clone https://github.com/gmarik/vundle.git <span class="hljs-variable">${install_dir}</span>
+
+<span class="hljs-built_in">cd</span> <span class="hljs-variable">${base_dir}</span>
+cat ./bundle.conf &gt;&gt; ~/.vimrc
+
+vim +BundleInstall +qall
+
+<span class="hljs-built_in">cd</span> ~/.vim/bundle/YouCompleteMe
+
+git submodule update --init --recursive
+
+./install.sh --clang-completer
+</code></pre>
 
                     
                     </section>
@@ -744,10 +784,10 @@
         </div>
 
         
-        <a href="../index.html" class="navigation navigation-prev " aria-label="Previous page: Introduction"><i class="fa fa-angle-left"></i></a>
+        <a href="../vim/README.html" class="navigation navigation-prev " aria-label="Previous page: vim插件"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../gitbook/install/README.html" class="navigation navigation-next " aria-label="Next page: 安装"><i class="fa fa-angle-right"></i></a>
+        <a href="../vim/plugin.html" class="navigation navigation-next " aria-label="Next page: 我使用的插件"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>
