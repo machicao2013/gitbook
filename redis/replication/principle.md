@@ -161,7 +161,8 @@ void syncWithMaster(aeEventLoop *el, int fd, void *privdata, int mask) {
         /* Ignore the error if any, not all the Redis versions support
          * REPLCONF listening-port. */
         if (err) {
-            redisLog(REDIS_NOTICE,"(non critical): Master does not understand REPLCONF listening-port: %s", err);
+            redisLog(REDIS_NOTICE,"(non critical): Master does not understand
+                    REPLCONF listening-port: %s", err);
             sdsfree(err);
         }
     }
@@ -182,7 +183,8 @@ void syncWithMaster(aeEventLoop *el, int fd, void *privdata, int mask) {
         sleep(1);
     }
     if (dfd == -1) {
-        redisLog(REDIS_WARNING,"Opening the temp file needed for MASTER <-> SLAVE synchronization: %s",strerror(errno));
+        redisLog(REDIS_WARNING,"Opening the temp file needed for MASTER <-> SLAVE
+                synchronization: %s",strerror(errno));
         goto error;
     }
 
@@ -251,7 +253,8 @@ void readSyncBulkPayload(aeEventLoop *el, int fd, void *privdata, int mask) {
     }
     server.repl_transfer_lastio = server.unixtime;
     if (write(server.repl_transfer_fd,buf,nread) != nread) {
-        redisLog(REDIS_WARNING,"Write error or short write writing to the DB dump file needed for MASTER <-> SLAVE synchronization: %s", strerror(errno));
+        redisLog(REDIS_WARNING,"Write error or short write writing to the DB"
+            "dump file needed for MASTER <-> SLAVE synchronization: %s", strerror(errno));
         goto error;
     }
     server.repl_transfer_read += nread;
@@ -270,7 +273,8 @@ void readSyncBulkPayload(aeEventLoop *el, int fd, void *privdata, int mask) {
     // 检查是否传输完成
     if (server.repl_transfer_read == server.repl_transfer_size) {
         if (rename(server.repl_transfer_tmpfile,server.rdb_filename) == -1) {
-            redisLog(REDIS_WARNING,"Failed trying to rename the temp DB into dump.rdb in MASTER <-> SLAVE synchronization: %s", strerror(errno));
+            redisLog(REDIS_WARNING,"Failed trying to rename the temp DB into dump.rdb"
+                    "in MASTER <-> SLAVE synchronization: %s", strerror(errno));
             replicationAbortSyncTransfer();
             return;
         }
@@ -303,11 +307,13 @@ void readSyncBulkPayload(aeEventLoop *el, int fd, void *privdata, int mask) {
 
             stopAppendOnly();
             while (retry-- && startAppendOnly() == REDIS_ERR) {
-                redisLog(REDIS_WARNING,"Failed enabling the AOF after successful master synchrnization! Trying it again in one second.");
+                redisLog(REDIS_WARNING,"Failed enabling the AOF after successful"
+                        "master synchrnization! Trying it again in one second.");
                 sleep(1);
             }
             if (!retry) {
-                redisLog(REDIS_WARNING,"FATAL: this slave instance finished the synchronization with its master, but the AOF can't be turned on. Exiting now.");
+                redisLog(REDIS_WARNING,"FATAL: this slave instance finished the synchronization"
+                    "with its master, but the AOF can't be turned on. Exiting now.");
                 exit(1);
             }
         }
@@ -322,3 +328,196 @@ error:
 ```
 
 ### redis作为master时的行为分析 ###
+
+redis作为master时，当收到slave发过来的sync命令后，会执行syncCommand,如果rdb的持久化没有执行，则执行rdbSaveBackground()函数(该函数会启动一个进程)，slave.repl_state的状态变为REDIS_REPL_WAIT_BGSAVE_END,进程结束后，会在serverCron()中执行backgroundSaveDoneHandler()函数，backgroundSaveDoneHandler()函数会执行updateSlavesWaitingBgsave()函数，该函数会注册一个写事件(对应的回调函数位sendBulkToSlave)，向slave同步rdb文件的数据，updateSlavesWaitingBgsave函数执行完毕后，slave.repl_state的状态变为REDIS_REPL_SEND_BULK,sendBulkToSlave函数在发送完rdb文件的数据后，slave.repl_state的状态变为REDIS_REPL_ONLINE。
+
+```c
+// redis.c/syncCommand()
+void syncCommand(redisClient *c) {
+    // ----------------------省略300行----------------------------
+    // 检查是否已经有 BGSAVE 在执行，否则就创建一个新的 BGSAVE 任务
+    if (server.rdb_child_pid != -1) {
+        // 已有 BGSAVE 在执行，检查它能否用于当前客户端的 SYNC 操作
+        redisClient *slave;
+        listNode *ln;
+        listIter li;
+
+        // 检查是否有其他客户端在等待 SYNC 进行
+        listRewind(server.slaves,&li);
+        while((ln = listNext(&li))) {
+            slave = ln->value;
+            if (slave->replstate == REDIS_REPL_WAIT_BGSAVE_END) break;
+        }
+        if (ln) {
+            // 找到一个同样在等到 SYNC 的客户端
+            // 设置当前客户端的状态，并复制 buffer 。
+            copyClientOutputBuffer(c,slave);
+            c->replstate = REDIS_REPL_WAIT_BGSAVE_END;
+            redisLog(REDIS_NOTICE,"Waiting for end of BGSAVE for SYNC");
+        } else {
+            // 没有客户端在等待 SYNC ，当前客户端只能等待下次 BGSAVE 进行
+            c->replstate = REDIS_REPL_WAIT_BGSAVE_START;
+            redisLog(REDIS_NOTICE,"Waiting for next BGSAVE for SYNC");
+        }
+    } else {
+        // 没有 BGSAVE 在进行，自己启动一个。
+        /* Ok we don't have a BGSAVE in progress, let's start one */
+        redisLog(REDIS_NOTICE,"Starting BGSAVE for SYNC");
+        // 后台重写rdb
+        if (rdbSaveBackground(server.rdb_filename) != REDIS_OK) {
+            redisLog(REDIS_NOTICE,"Replication failed, can't BGSAVE");
+            addReplyError(c,"Unable to perform background save");
+            return;
+        }
+        // 等待 BGSAVE 结束,状态发生了变化
+        c->replstate = REDIS_REPL_WAIT_BGSAVE_END;
+    }
+    c->repldbfd = -1;
+    c->flags |= REDIS_SLAVE;
+    c->slaveseldb = 0;
+    listAddNodeTail(server.slaves,c);
+
+    return;
+}
+```
+```c
+// rdbSaveBackground()会启动一个进程，进行rdb的持久化，持久化完成后，serverCron会
+// 执行backgroundSaveDoneHandler,该函数会调用updateSlavesWaitingBgsave()函数
+void updateSlavesWaitingBgsave(int bgsaveerr) {
+    listNode *ln;
+    int startbgsave = 0;
+    listIter li;
+
+    // 遍历所有附属节点
+    listRewind(server.slaves,&li);
+    while((ln = listNext(&li))) {
+        redisClient *slave = ln->value;
+
+        if (slave->replstate == REDIS_REPL_WAIT_BGSAVE_START) {
+            // 告诉那些这次不能同步的客户端，可以等待下次 BGSAVE 了。
+            startbgsave = 1;
+            slave->replstate = REDIS_REPL_WAIT_BGSAVE_END;
+        } else if (slave->replstate == REDIS_REPL_WAIT_BGSAVE_END) {
+            // 这些是本次可以同步的客户端
+
+            struct redis_stat buf;
+
+            // 如果 BGSAVE 失败，释放 slave 节点
+            if (bgsaveerr != REDIS_OK) {
+                freeClient(slave);
+                redisLog(REDIS_WARNING,"SYNC failed. BGSAVE child returned an error");
+                continue;
+            }
+            // 打开 .rdb 文件
+            if ((slave->repldbfd = open(server.rdb_filename,O_RDONLY)) == -1 ||
+                // 如果打开失败，释放并清除
+                redis_fstat(slave->repldbfd,&buf) == -1) {
+                freeClient(slave);
+                redisLog(REDIS_WARNING,"SYNC failed. Can't open/stat DB after BGSAVE: %s",
+                        strerror(errno));
+                continue;
+            }
+            // 偏移量
+            slave->repldboff = 0;
+            // 数据库大小（.rdb 文件的大小）
+            slave->repldbsize = buf.st_size;
+            // 状态发生了变化,开始要传输文件内容
+            slave->replstate = REDIS_REPL_SEND_BULK;
+            // 清除 slave->fd 的写事件
+            aeDeleteFileEvent(server.el,slave->fd,AE_WRITABLE);
+            // 创建一个将 .rdb 文件内容发送到附属节点的写事件
+            if (aeCreateFileEvent(server.el, slave->fd, AE_WRITABLE, sendBulkToSlave,
+                                    slave) == AE_ERR) {
+                freeClient(slave);
+                continue;
+            }
+        }
+    }
+    //-----------------此处省略三百行----------------------
+}
+```
+```c
+// replication.c/sendBulkToSlave实现
+void sendBulkToSlave(aeEventLoop *el, int fd, void *privdata, int mask) {
+    redisClient *slave = privdata;
+    REDIS_NOTUSED(el);
+    REDIS_NOTUSED(mask);
+    char buf[REDIS_IOBUF_LEN];
+    ssize_t nwritten, buflen;
+
+    // 刚开始执行 .rdb 文件的发送？
+    if (slave->repldboff == 0) {
+        /* Write the bulk write count before to transfer the DB. In theory here
+         * we don't know how much room there is in the output buffer of the
+         * socket, but in pratice SO_SNDLOWAT (the minimum count for output
+         * operations) will never be smaller than the few bytes we need. */
+        sds bulkcount;
+
+        // 首先将主节点 .rdb 文件的大小发送到附属节点
+        bulkcount = sdscatprintf(sdsempty(),"$%lld\r\n",(unsigned long long)
+            slave->repldbsize);
+        if (write(fd,bulkcount,sdslen(bulkcount)) != (signed)sdslen(bulkcount))
+        {
+            sdsfree(bulkcount);
+            freeClient(slave);
+            return;
+        }
+        sdsfree(bulkcount);
+    }
+
+    // 设置主节点 .rdb 文件的偏移量
+    lseek(slave->repldbfd,slave->repldboff,SEEK_SET);
+
+    // 读取主节点 .rdb 文件的数据到 buf
+    buflen = read(slave->repldbfd,buf,REDIS_IOBUF_LEN);
+    if (buflen <= 0) {
+        // 主节点 .rdb 文件读取错误，返回
+        redisLog(REDIS_WARNING,"Read error sending DB to slave: %s",
+            (buflen == 0) ? "premature EOF" : strerror(errno));
+        freeClient(slave);
+        return;
+    }
+
+    // 将 buf 发送给附属节点
+    if ((nwritten = write(fd,buf,buflen)) == -1) {
+        // 附属节点写入出错，返回
+        redisLog(REDIS_VERBOSE,"Write error sending DB to slave: %s",
+            strerror(errno));
+        freeClient(slave);
+        return;
+    }
+
+    // 更新偏移量
+    slave->repldboff += nwritten;
+
+    // .rdb 文件全部发送完毕
+    if (slave->repldboff == slave->repldbsize) {
+        // 关闭 .rdb 文件
+        close(slave->repldbfd);
+        // 重置
+        slave->repldbfd = -1;
+        // 删除发送事件
+        aeDeleteFileEvent(server.el,slave->fd,AE_WRITABLE);
+        // 状态发生了变化
+        slave->replstate = REDIS_REPL_ONLINE;
+        // TODO：
+        if (aeCreateFileEvent(server.el, slave->fd, AE_WRITABLE,
+            sendReplyToClient, slave) == AE_ERR) {
+            freeClient(slave);
+            return;
+        }
+        redisLog(REDIS_NOTICE,"Synchronization with slave succeeded");
+    }
+}
+```
+```c
+// slave.repl_state的状态变成REDIS_REPL_ONLINE后，master只需要同步发送数据到slave，
+// 这是在redis.c/propagate中实现的,具体的实现是在replicationFeedSlaves中实现
+void propagate(struct redisCommand *cmd, int dbid, robj **argv, int argc, int flags)
+{
+    if (server.aof_state != REDIS_AOF_OFF && flags & REDIS_PROPAGATE_AOF)
+        feedAppendOnlyFile(cmd,dbid,argv,argc);
+    if (flags & REDIS_PROPAGATE_REPL && listLength(server.slaves))
+        replicationFeedSlaves(server.slaves,dbid,argv,argc);
+}
+```
