@@ -32,7 +32,7 @@
 
 
         
-    <div class="book" data-level="3.5.1" data-basepath="../.." data-revision="1416757462491">
+    <div class="book" data-level="3.7.1" data-basepath="../.." data-revision="1416837182539">
     
 
 <div class="book-summary">
@@ -545,13 +545,45 @@
         </li>
     
         
-        <li class="chapter " data-level="3.5" data-path="redis/others/README.html">
+        <li class="chapter " data-level="3.5" data-path="redis/sentinel/README.html">
+            
+                
+                    <a href="../../redis/sentinel/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.5.</b>
+                        
+                         sentinel
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.6" data-path="redis/sharding/README.html">
+            
+                
+                    <a href="../../redis/sharding/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.6.</b>
+                        
+                         cluster &amp; sharding
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.7" data-path="redis/others/README.html">
             
                 
                     <a href="../../redis/others/README.html">
                         <i class="fa fa-check"></i>
                         
-                            <b>3.5.</b>
+                            <b>3.7.</b>
                         
                          others
                     </a>
@@ -562,13 +594,13 @@
                 
     
         
-        <li class="chapter active" data-level="3.5.1" data-path="redis/others/closeAofFile.html">
+        <li class="chapter active" data-level="3.7.1" data-path="redis/others/closeAofFile.html">
             
                 
                     <a href="../../redis/others/closeAofFile.html">
                         <i class="fa fa-check"></i>
                         
-                            <b>3.5.1.</b>
+                            <b>3.7.1.</b>
                         
                          redis关闭旧aof文件时的处理
                     </a>
@@ -578,13 +610,13 @@
         </li>
     
         
-        <li class="chapter " data-level="3.5.2" data-path="redis/others/memory.html">
+        <li class="chapter " data-level="3.7.2" data-path="redis/others/memory.html">
             
                 
                     <a href="../../redis/others/memory.html">
                         <i class="fa fa-check"></i>
                         
-                            <b>3.5.2.</b>
+                            <b>3.7.2.</b>
                         
                          redis内存处理
                     </a>
@@ -599,13 +631,13 @@
         </li>
     
         
-        <li class="chapter " data-level="3.6" data-path="redis/end/README.html">
+        <li class="chapter " data-level="3.8" data-path="redis/end/README.html">
             
                 
                     <a href="../../redis/end/README.html">
                         <i class="fa fa-check"></i>
                         
-                            <b>3.6.</b>
+                            <b>3.8.</b>
                         
                          小结
                     </a>
@@ -721,6 +753,37 @@
 </ol>
 </li>
 <li>如果fd_A != -1,则A文件一定存在,如果直接调用rename(B,A),如果把fd_A = fd_B, 会导致close(fd_A),然后调用unlink(A),这个同样会阻塞。</li>
+</ol>
+<p>redis的解决方案：</p>
+<ol>
+<li>如果A文件不存在，则直接rename(B, A)</li>
+<li>否则，打开A文件，然后rename(B, A)，此时不会导致unlink(A)，因为A文件描述符的引用计数不为0,然后在一个后台线程专门的执行close()操作。</li>
+<li><p>伪代码如下：</p>
+<pre><code class="lang-c">     <span class="hljs-comment">// original_A代表原始的打开A文件的描述符，如果A不存在或者没有打开，则original_A = -1</span>
+     <span class="hljs-keyword">if</span>(original_A == -<span class="hljs-number">1</span>)
+         fd_A = open(A); <span class="hljs-comment">// 如果A文件不存在，则fd_A = -1</span>
+     <span class="hljs-keyword">else</span>
+         fd_A = -<span class="hljs-number">1</span>;      <span class="hljs-comment">// A存在且已经打开</span>
+
+     fd_B = open(B);
+
+     <span class="hljs-keyword">if</span>(rename(B, A) == -<span class="hljs-number">1</span>) {
+         close(fd_B);
+         <span class="hljs-keyword">if</span>(fd_A != -<span class="hljs-number">1</span>)
+             close(fd_A);
+     }
+
+     <span class="hljs-keyword">if</span>(original_A == -<span class="hljs-number">1</span>)
+         close(fd_B);
+     <span class="hljs-keyword">else</span> {
+         fd_A = original_A;
+         original_A = fd_B;
+     }
+
+     <span class="hljs-keyword">if</span>(fd_A != -<span class="hljs-number">1</span>)
+         backgroundCloseFile(fd_A);
+</code></pre>
+</li>
 </ol>
 <p>其实现在aof.c/backgroundRewriteDoneHandler函数进行处理：</p>
 <pre><code class="lang-c"><span class="hljs-keyword">void</span> backgroundRewriteDoneHandler(<span class="hljs-keyword">int</span> exitcode, <span class="hljs-keyword">int</span> bysignal) {

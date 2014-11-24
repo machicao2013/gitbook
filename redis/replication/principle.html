@@ -32,7 +32,7 @@
 
 
         
-    <div class="book" data-level="3.4.2" data-basepath="../.." data-revision="1416757462491">
+    <div class="book" data-level="3.4.2" data-basepath="../.." data-revision="1416837182539">
     
 
 <div class="book-summary">
@@ -545,13 +545,45 @@
         </li>
     
         
-        <li class="chapter " data-level="3.5" data-path="redis/others/README.html">
+        <li class="chapter " data-level="3.5" data-path="redis/sentinel/README.html">
+            
+                
+                    <a href="../../redis/sentinel/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.5.</b>
+                        
+                         sentinel
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.6" data-path="redis/sharding/README.html">
+            
+                
+                    <a href="../../redis/sharding/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.6.</b>
+                        
+                         cluster &amp; sharding
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.7" data-path="redis/others/README.html">
             
                 
                     <a href="../../redis/others/README.html">
                         <i class="fa fa-check"></i>
                         
-                            <b>3.5.</b>
+                            <b>3.7.</b>
                         
                          others
                     </a>
@@ -562,13 +594,13 @@
                 
     
         
-        <li class="chapter " data-level="3.5.1" data-path="redis/others/closeAofFile.html">
+        <li class="chapter " data-level="3.7.1" data-path="redis/others/closeAofFile.html">
             
                 
                     <a href="../../redis/others/closeAofFile.html">
                         <i class="fa fa-check"></i>
                         
-                            <b>3.5.1.</b>
+                            <b>3.7.1.</b>
                         
                          redis关闭旧aof文件时的处理
                     </a>
@@ -578,13 +610,13 @@
         </li>
     
         
-        <li class="chapter " data-level="3.5.2" data-path="redis/others/memory.html">
+        <li class="chapter " data-level="3.7.2" data-path="redis/others/memory.html">
             
                 
                     <a href="../../redis/others/memory.html">
                         <i class="fa fa-check"></i>
                         
-                            <b>3.5.2.</b>
+                            <b>3.7.2.</b>
                         
                          redis内存处理
                     </a>
@@ -599,13 +631,13 @@
         </li>
     
         
-        <li class="chapter " data-level="3.6" data-path="redis/end/README.html">
+        <li class="chapter " data-level="3.8" data-path="redis/end/README.html">
             
                 
                     <a href="../../redis/end/README.html">
                         <i class="fa fa-check"></i>
                         
-                            <b>3.6.</b>
+                            <b>3.8.</b>
                         
                          小结
                     </a>
@@ -806,6 +838,7 @@ run_with_period(<span class="hljs-number">1000</span>) replicationCron();
         <span class="hljs-comment">/* Delete the writable event so that the readable event remains
          * registered and we can wait for the PONG reply. */</span>
         aeDeleteFileEvent(server.el,fd,AE_WRITABLE);
+        <span class="hljs-comment">// 状态发生改变</span>
         server.repl_state = REDIS_REPL_RECEIVE_PONG;
         <span class="hljs-comment">/* Send the PING, don't check for errors at all, we have the timeout
          * that will take care about this. */</span>
@@ -897,6 +930,7 @@ run_with_period(<span class="hljs-number">1000</span>) replicationCron();
         <span class="hljs-keyword">goto</span> error;
     }
 
+    <span class="hljs-comment">// 状态发生了变化</span>
     server.repl_state = REDIS_REPL_TRANSFER;
     server.repl_transfer_size = -<span class="hljs-number">1</span>;
     server.repl_transfer_read = <span class="hljs-number">0</span>;
@@ -910,6 +944,114 @@ error:
     close(fd);
     server.repl_transfer_s = -<span class="hljs-number">1</span>;
     server.repl_state = REDIS_REPL_CONNECT;
+    <span class="hljs-keyword">return</span>;
+}
+</code></pre>
+<pre><code class="lang-c"><span class="hljs-comment">// replication.c/readSyncBulkPayload()</span>
+<span class="hljs-comment">/* Asynchronously read the SYNC payload we receive from a master */</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">define</span> REPL_MAX_WRITTEN_BEFORE_FSYNC (1024*1024*8) /* 8 MB */</span>
+<span class="hljs-keyword">void</span> readSyncBulkPayload(aeEventLoop *el, <span class="hljs-keyword">int</span> fd, <span class="hljs-keyword">void</span> *privdata, <span class="hljs-keyword">int</span> mask) {
+    <span class="hljs-keyword">char</span> buf[<span class="hljs-number">4096</span>];
+    ssize_t nread, readlen;
+    off_t left;
+    REDIS_NOTUSED(el);
+    REDIS_NOTUSED(privdata);
+    REDIS_NOTUSED(mask);
+
+    <span class="hljs-comment">// 首先读取服务器端传过来的rdb文件大小</span>
+    <span class="hljs-keyword">if</span> (server.repl_transfer_size == -<span class="hljs-number">1</span>) {
+        <span class="hljs-keyword">if</span> (syncReadLine(fd,buf,<span class="hljs-number">1024</span>,server.repl_syncio_timeout*<span class="hljs-number">1000</span>) == -<span class="hljs-number">1</span>) {
+            redisLog(REDIS_WARNING,
+                <span class="hljs-string">"I/O error reading bulk count from MASTER: %s"</span>,
+                strerror(errno));
+            <span class="hljs-keyword">goto</span> error;
+        }
+        <span class="hljs-comment">// ----------------------省略300行(错误处理)----------------------------</span>
+        server.repl_transfer_size = strtol(buf+<span class="hljs-number">1</span>,NULL,<span class="hljs-number">10</span>);
+        redisLog(REDIS_NOTICE,
+            <span class="hljs-string">"MASTER &lt;-&gt; SLAVE sync: receiving %ld bytes from master"</span>,
+            server.repl_transfer_size);
+        <span class="hljs-keyword">return</span>;
+    }
+
+    <span class="hljs-comment">/* Read bulk data */</span>
+    left = server.repl_transfer_size - server.repl_transfer_read;
+    readlen = (left &lt; (<span class="hljs-keyword">signed</span>)<span class="hljs-keyword">sizeof</span>(buf)) ? left : (<span class="hljs-keyword">signed</span>)<span class="hljs-keyword">sizeof</span>(buf);
+    nread = read(fd,buf,readlen);
+    <span class="hljs-keyword">if</span> (nread &lt;= <span class="hljs-number">0</span>) {
+        redisLog(REDIS_WARNING,<span class="hljs-string">"I/O error trying to sync with MASTER: %s"</span>,
+            (nread == -<span class="hljs-number">1</span>) ? strerror(errno) : <span class="hljs-string">"connection lost"</span>);
+        replicationAbortSyncTransfer();
+        <span class="hljs-keyword">return</span>;
+    }
+    server.repl_transfer_lastio = server.unixtime;
+    <span class="hljs-keyword">if</span> (write(server.repl_transfer_fd,buf,nread) != nread) {
+        redisLog(REDIS_WARNING,<span class="hljs-string">"Write error or short write writing to the DB dump file needed for MASTER &lt;-&gt; SLAVE synchronization: %s"</span>, strerror(errno));
+        <span class="hljs-keyword">goto</span> error;
+    }
+    server.repl_transfer_read += nread;
+
+    <span class="hljs-comment">// 刷新部分数据，如果最后全部接收完成后在刷新，并且文件较大时，会导致比较大的延迟</span>
+    <span class="hljs-keyword">if</span> (server.repl_transfer_read &gt;=
+        server.repl_transfer_last_fsync_off + REPL_MAX_WRITTEN_BEFORE_FSYNC)
+    {
+        off_t sync_size = server.repl_transfer_read -
+            server.repl_transfer_last_fsync_off;
+        rdb_fsync_range(server.repl_transfer_fd,
+            server.repl_transfer_last_fsync_off, sync_size);
+        server.repl_transfer_last_fsync_off += sync_size;
+    }
+
+    <span class="hljs-comment">// 检查是否传输完成</span>
+    <span class="hljs-keyword">if</span> (server.repl_transfer_read == server.repl_transfer_size) {
+        <span class="hljs-keyword">if</span> (rename(server.repl_transfer_tmpfile,server.rdb_filename) == -<span class="hljs-number">1</span>) {
+            redisLog(REDIS_WARNING,<span class="hljs-string">"Failed trying to rename the temp DB into dump.rdb in MASTER &lt;-&gt; SLAVE synchronization: %s"</span>, strerror(errno));
+            replicationAbortSyncTransfer();
+            <span class="hljs-keyword">return</span>;
+        }
+        redisLog(REDIS_NOTICE, <span class="hljs-string">"MASTER &lt;-&gt; SLAVE sync: Loading DB in memory"</span>);
+        emptyDb();
+        <span class="hljs-comment">/* Before loading the DB into memory we need to delete the readable
+         * handler, otherwise it will get called recursively since
+         * rdbLoad() will call the event loop to process events from time to
+         * time for non blocking loading. */</span>
+        aeDeleteFileEvent(server.el,server.repl_transfer_s,AE_READABLE);
+        <span class="hljs-keyword">if</span> (rdbLoad(server.rdb_filename) != REDIS_OK) {
+            redisLog(REDIS_WARNING,<span class="hljs-string">"Failed trying to load the MASTER synchronization DB from disk"</span>);
+            replicationAbortSyncTransfer();
+            <span class="hljs-keyword">return</span>;
+        }
+        <span class="hljs-comment">/* Final setup of the connected slave &lt;- master link */</span>
+        zfree(server.repl_transfer_tmpfile);
+        close(server.repl_transfer_fd);
+        server.master = createClient(server.repl_transfer_s);
+        server.master-&gt;flags |= REDIS_MASTER;
+        server.master-&gt;authenticated = <span class="hljs-number">1</span>;
+        <span class="hljs-comment">// 状态发生了变化</span>
+        server.repl_state = REDIS_REPL_CONNECTED;
+        redisLog(REDIS_NOTICE, <span class="hljs-string">"MASTER &lt;-&gt; SLAVE sync: Finished with success"</span>);
+        <span class="hljs-comment">/* Restart the AOF subsystem now that we finished the sync. This
+         * will trigger an AOF rewrite, and when done will start appending
+         * to the new file. */</span>
+        <span class="hljs-keyword">if</span> (server.aof_state != REDIS_AOF_OFF) {
+            <span class="hljs-keyword">int</span> retry = <span class="hljs-number">10</span>;
+
+            stopAppendOnly();
+            <span class="hljs-keyword">while</span> (retry-- &amp;&amp; startAppendOnly() == REDIS_ERR) {
+                redisLog(REDIS_WARNING,<span class="hljs-string">"Failed enabling the AOF after successful master synchrnization! Trying it again in one second."</span>);
+                sleep(<span class="hljs-number">1</span>);
+            }
+            <span class="hljs-keyword">if</span> (!retry) {
+                redisLog(REDIS_WARNING,<span class="hljs-string">"FATAL: this slave instance finished the synchronization with its master, but the AOF can't be turned on. Exiting now."</span>);
+                <span class="hljs-built_in">exit</span>(<span class="hljs-number">1</span>);
+            }
+        }
+    }
+
+    <span class="hljs-keyword">return</span>;
+
+error:
+    replicationAbortSyncTransfer();
     <span class="hljs-keyword">return</span>;
 }
 </code></pre>
