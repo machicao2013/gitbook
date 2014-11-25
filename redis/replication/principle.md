@@ -521,3 +521,52 @@ void propagate(struct redisCommand *cmd, int dbid, robj **argv, int argc, int fl
         replicationFeedSlaves(server.slaves,dbid,argv,argc);
 }
 ```
+```c
+// 还有一个和Replication相关的命令，slaveof，该命令对应的处理函数是slaveCommand,
+// 该命令主要是几个状态的切换
+void slaveofCommand(redisClient *c) {
+    if (!strcasecmp(c->argv[1]->ptr,"no") &&
+        !strcasecmp(c->argv[2]->ptr,"one")) {
+        if (server.masterhost) {
+            sdsfree(server.masterhost);
+            server.masterhost = NULL;
+            if (server.master) freeClient(server.master);
+            if (server.repl_state == REDIS_REPL_TRANSFER)
+                replicationAbortSyncTransfer();
+            else if (server.repl_state == REDIS_REPL_CONNECTING ||
+                     server.repl_state == REDIS_REPL_RECEIVE_PONG)
+                undoConnectWithMaster();
+            server.repl_state = REDIS_REPL_NONE;
+            redisLog(REDIS_NOTICE,"MASTER MODE enabled (user request)");
+        }
+    } else {
+        // 将主变为从
+        long port;
+
+        if ((getLongFromObjectOrReply(c, c->argv[2], &port, NULL) != REDIS_OK))
+            return;
+
+        /* Check if we are already attached to the specified slave */
+        if (server.masterhost && !strcasecmp(server.masterhost,c->argv[1]->ptr)
+            && server.masterport == port) {
+            redisLog(REDIS_NOTICE,"SLAVE OF would result into synchronization with the master we"
+                            "are already connected with. No operation performed.");
+            addReplySds(c,sdsnew("+OK Already connected to specified master\r\n"));
+            return;
+        }
+        /* There was no previous master or the user specified a different one,
+         * we can continue. */
+        sdsfree(server.masterhost);
+        server.masterhost = sdsdup(c->argv[1]->ptr);
+        server.masterport = port;
+        if (server.master) freeClient(server.master);
+        disconnectSlaves(); /* Force our slaves to resync with us as well. */
+        if (server.repl_state == REDIS_REPL_TRANSFER)
+            replicationAbortSyncTransfer();
+        server.repl_state = REDIS_REPL_CONNECT;
+        redisLog(REDIS_NOTICE,"SLAVE OF %s:%d enabled (user request)",
+            server.masterhost, server.masterport);
+    }
+    addReply(c,shared.ok);
+}
+```
