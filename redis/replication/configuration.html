@@ -4,7 +4,7 @@
     <head>
         
         <meta charset="UTF-8">
-        <title>redis内存处理 | 我的笔记</title>
+        <title>replication相关的配置 | 我的笔记</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.3.3">
@@ -17,10 +17,10 @@
         
     
     
-    <link rel="next" href="../../redis/end/README.html" />
+    <link rel="next" href="../../redis/replication/principle.html" />
     
     
-    <link rel="prev" href="../../redis/others/closeAofFile.html" />
+    <link rel="prev" href="../../redis/replication/README.html" />
     
 
         
@@ -32,7 +32,7 @@
 
 
         
-    <div class="book" data-level="3.7.2" data-basepath="../.." data-revision="1417064222089">
+    <div class="book" data-level="3.4.1" data-basepath="../.." data-revision="1417064222089">
     
 
 <div class="book-summary">
@@ -492,7 +492,7 @@
                 
     
         
-        <li class="chapter " data-level="3.4.1" data-path="redis/replication/configuration.html">
+        <li class="chapter active" data-level="3.4.1" data-path="redis/replication/configuration.html">
             
                 
                     <a href="../../redis/replication/configuration.html">
@@ -610,7 +610,7 @@
         </li>
     
         
-        <li class="chapter active" data-level="3.7.2" data-path="redis/others/memory.html">
+        <li class="chapter " data-level="3.7.2" data-path="redis/others/memory.html">
             
                 
                     <a href="../../redis/others/memory.html">
@@ -740,111 +740,160 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_21">
+                    <section class="normal" id="section-gitbook_28">
                     
-                        <h1 id="redis">redis内存简介</h1>
-<p>redis的内存分配工作有其自己接管，主要是在zmalloc.h和zmalloc.c两个文件中实现。</p>
-<p>redis可以使用jemalloc，tcmalloc或者利用glibc的内存分配器。为这三种分配器提供了统一的接口，加入了统计功能。</p>
-<p>redis在分配内存的时候，除了分配请求大小的内存，还在该内存头部保存了该内存的大小。</p>
-<h2 id="">内存分配</h2>
-<p>zmalloc的定义：</p>
-<pre><code class="lang-c"><span class="hljs-keyword">void</span> *zmalloc(size_t size) {
-    <span class="hljs-keyword">void</span> *ptr = <span class="hljs-built_in">malloc</span>(size+PREFIX_SIZE);
+                        <h1 id="replication">replication的配置</h1>
+<h2 id="replication">replication在配置文件中的配置</h2>
+<p>配置一个slave非常的简单，有两种方法：</p>
+<ol>
+<li>在配置文件添加一行: slaveof 192.168.1.1 6379</li>
+<li>使用redis-cli连接上master,执行：SLAVEOF 192.168.1.1 10086</li>
+</ol>
+<p>redis.conf中和replication相关的配置(关于各项的配置，注释已经解释的非常的清楚，不作过多的介绍了)：</p>
+<pre><code class="lang-sh"><span class="hljs-comment"># Master-Slave replication. Use slaveof to make a Redis instance a copy of</span>
+<span class="hljs-comment"># another Redis server. Note that the configuration is local to the slave</span>
+<span class="hljs-comment"># so for example it is possible to configure the slave to save the DB with a</span>
+<span class="hljs-comment"># different interval, or to listen to another port, and so on.</span>
+<span class="hljs-comment">#</span>
+slaveof &lt;masterip&gt; &lt;masterport&gt;
 
-    <span class="hljs-keyword">if</span> (!ptr) zmalloc_oom_handler(size);
-<span class="hljs-preprocessor">#ifdef HAVE_MALLOC_SIZE</span>
-    update_zmalloc_stat_alloc(zmalloc_size(ptr));
-    <span class="hljs-keyword">return</span> ptr;
-<span class="hljs-preprocessor">#<span class="hljs-keyword">else</span></span>
-    *((size_t*)ptr) = size;
-    update_zmalloc_stat_alloc(size+PREFIX_SIZE);
-    <span class="hljs-keyword">return</span> (<span class="hljs-keyword">char</span>*)ptr+PREFIX_SIZE;
-<span class="hljs-preprocessor">#<span class="hljs-keyword">endif</span></span>
-}
+<span class="hljs-comment"># If the master is password protected (using the "requirepass" configuration</span>
+<span class="hljs-comment"># directive below) it is possible to tell the slave to authenticate before</span>
+<span class="hljs-comment"># starting the replication synchronization process, otherwise the master will</span>
+<span class="hljs-comment"># refuse the slave request.</span>
+<span class="hljs-comment">#</span>
+<span class="hljs-comment"># masterauth &lt;master-password&gt;</span>
+
+<span class="hljs-comment"># When a slave lost the connection with the master, or when the replication</span>
+<span class="hljs-comment"># is still in progress, the slave can act in two different ways:</span>
+<span class="hljs-comment">#</span>
+<span class="hljs-comment"># 1) if slave-serve-stale-data is set to 'yes' (the default) the slave will</span>
+<span class="hljs-comment">#    still reply to client requests, possibly with out of date data, or the</span>
+<span class="hljs-comment">#    data set may just be empty if this is the first synchronization.</span>
+<span class="hljs-comment">#</span>
+<span class="hljs-comment"># 2) if slave-serve-stale data is set to 'no' the slave will reply with</span>
+<span class="hljs-comment">#    an error "SYNC with master in progress" to all the kind of commands</span>
+<span class="hljs-comment">#    but to INFO and SLAVEOF.</span>
+<span class="hljs-comment">#</span>
+slave-serve-stale-data yes
+
+<span class="hljs-comment"># You can configure a slave instance to accept writes or not. Writing against</span>
+<span class="hljs-comment"># a slave instance may be useful to store some ephemeral data (because data</span>
+<span class="hljs-comment"># written on a slave will be easily deleted after resync with the master) but</span>
+<span class="hljs-comment"># may also cause problems if clients are writing to it because of a</span>
+<span class="hljs-comment"># misconfiguration.</span>
+<span class="hljs-comment">#</span>
+<span class="hljs-comment"># Since Redis 2.6 by default slaves are read-only.</span>
+<span class="hljs-comment">#</span>
+<span class="hljs-comment"># Note: read only slaves are not designed to be exposed to untrusted clients</span>
+<span class="hljs-comment"># on the internet. It's just a protection layer against misuse of the instance.</span>
+<span class="hljs-comment"># Still a read only slave exports by default all the administrative commands</span>
+<span class="hljs-comment"># such as CONFIG, DEBUG, and so forth. To a limited extend you can improve</span>
+<span class="hljs-comment"># security of read only slaves using 'rename-command' to shadow all the</span>
+<span class="hljs-comment"># administrative / dangerous commands.</span>
+slave-read-only yes
+
+<span class="hljs-comment"># Slaves send PINGs to server in a predefined interval. It's possible to change</span>
+<span class="hljs-comment"># this interval with the repl_ping_slave_period option. The default value is 10</span>
+<span class="hljs-comment"># seconds.</span>
+<span class="hljs-comment">#</span>
+repl-ping-slave-period <span class="hljs-number">10</span>
+
+<span class="hljs-comment"># The following option sets a timeout for both Bulk transfer I/O timeout and</span>
+<span class="hljs-comment"># master data or ping response timeout. The default value is 60 seconds.</span>
+<span class="hljs-comment">#</span>
+<span class="hljs-comment"># It is important to make sure that this value is greater than the value</span>
+<span class="hljs-comment"># specified for repl-ping-slave-period otherwise a timeout will be detected</span>
+<span class="hljs-comment"># every time there is low traffic between the master and the slave.</span>
+<span class="hljs-comment">#</span>
+repl-timeout <span class="hljs-number">60</span>
+
+<span class="hljs-comment"># The slave priority is an integer number published by Redis in the INFO output.</span>
+<span class="hljs-comment"># It is used by Redis Sentinel in order to select a slave to promote into a</span>
+<span class="hljs-comment"># master if the master is no longer working correctly.</span>
+<span class="hljs-comment">#</span>
+<span class="hljs-comment"># A slave with a low priority number is considered better for promotion, so</span>
+<span class="hljs-comment"># for instance if there are three slaves with priority 10, 100, 25 Sentinel will</span>
+<span class="hljs-comment"># pick the one wtih priority 10, that is the lowest.</span>
+<span class="hljs-comment">#</span>
+<span class="hljs-comment"># However a special priority of 0 marks the slave as not able to perform the</span>
+<span class="hljs-comment"># role of master, so a slave with priority of 0 will never be selected by</span>
+<span class="hljs-comment"># Redis Sentinel for promotion.</span>
+<span class="hljs-comment">#</span>
+<span class="hljs-comment"># By default the priority is 100.</span>
+slave-priority <span class="hljs-number">100</span>
 </code></pre>
-<h2 id="">内存释放</h2>
-<p>在释放的时候，可以通过当前指针减去PREFIX_SIZE的大小找到内存块的起始地址</p>
-<pre><code class="lang-c"><span class="hljs-keyword">void</span> zfree(<span class="hljs-keyword">void</span> *ptr) {
-<span class="hljs-preprocessor">#ifndef HAVE_MALLOC_SIZE</span>
-    <span class="hljs-keyword">void</span> *realptr;
-    size_t oldsize;
-<span class="hljs-preprocessor">#<span class="hljs-keyword">endif</span></span>
-
-    <span class="hljs-keyword">if</span> (ptr == NULL) <span class="hljs-keyword">return</span>;
-<span class="hljs-preprocessor">#ifdef HAVE_MALLOC_SIZE</span>
-    update_zmalloc_stat_free(zmalloc_size(ptr));
-    <span class="hljs-built_in">free</span>(ptr);
-<span class="hljs-preprocessor">#<span class="hljs-keyword">else</span></span>
-    realptr = (<span class="hljs-keyword">char</span>*)ptr-PREFIX_SIZE;
-    oldsize = *((size_t*)realptr);
-    update_zmalloc_stat_free(oldsize+PREFIX_SIZE);
-    <span class="hljs-built_in">free</span>(realptr);
-<span class="hljs-preprocessor">#<span class="hljs-keyword">endif</span></span>
-}
+<h2 id="replicationredisserver">replication在redisServer中相关的项</h2>
+<p>redisServer中关于replication的项比较多，包括：</p>
+<pre><code class="lang-c"><span class="hljs-comment">// redis2.6</span>
+<span class="hljs-comment">/* Slave specific fields */</span>
+<span class="hljs-keyword">char</span> *masterauth;               <span class="hljs-comment">/* AUTH with this password with master */</span>
+<span class="hljs-keyword">char</span> *masterhost;               <span class="hljs-comment">/* Hostname of master */</span>
+<span class="hljs-keyword">int</span> masterport;                 <span class="hljs-comment">/* Port of master */</span>
+<span class="hljs-keyword">int</span> repl_ping_slave_period;     <span class="hljs-comment">/* Master pings the slave every N seconds */</span>
+<span class="hljs-keyword">int</span> repl_timeout;               <span class="hljs-comment">/* Timeout after N seconds of master idle */</span>
+redisClient *master;     <span class="hljs-comment">/* Client that is master for this slave */</span>
+<span class="hljs-keyword">int</span> repl_syncio_timeout; <span class="hljs-comment">/* Timeout for synchronous I/O calls */</span>
+<span class="hljs-keyword">int</span> repl_state;          <span class="hljs-comment">/* Replication status if the instance is a slave */</span>
+off_t repl_transfer_size; <span class="hljs-comment">/* Size of RDB to read from master during sync. */</span>
+off_t repl_transfer_read; <span class="hljs-comment">/* Amount of RDB read from master during sync. */</span>
+off_t repl_transfer_last_fsync_off; <span class="hljs-comment">/* Offset when we fsync-ed last time. */</span>
+<span class="hljs-keyword">int</span> repl_transfer_s;     <span class="hljs-comment">/* Slave -&gt; Master SYNC socket */</span>
+<span class="hljs-keyword">int</span> repl_transfer_fd;    <span class="hljs-comment">/* Slave -&gt; Master SYNC temp file descriptor */</span>
+<span class="hljs-keyword">char</span> *repl_transfer_tmpfile; <span class="hljs-comment">/* Slave-&gt; master SYNC temp file name */</span>
+time_t repl_transfer_lastio; <span class="hljs-comment">/* Unix time of the latest read, for timeout */</span>
+<span class="hljs-keyword">int</span> repl_serve_stale_data; <span class="hljs-comment">/* Slave down掉后，是否使用旧(stale)数据，配置参数slave-serve-stale-data决定 */</span>
+<span class="hljs-keyword">int</span> repl_slave_ro;          <span class="hljs-comment">/* Slave是否为只读，配置参数slave-read-only决定  */</span>
+time_t repl_down_since; <span class="hljs-comment">/* Unix time at which link with master went down */</span>
+<span class="hljs-keyword">int</span> slave_priority;             <span class="hljs-comment">/* Reported in INFO and used by Sentinel. */</span>
 </code></pre>
-<h2 id="rss-resident-set-size">获取常驻集(RSS: resident set size)</h2>
-<p>RSS: number of pages the process has in real memory. This is just the pages which count towards text, data, or stack space. This does not include pages which have not been  demand-loaded  in, or which are swapped out.</p>
-<p>计算方法：从/proc/%d/stat读取数据，得到第24个字段，假设值为rss，则最终rss = rss*PAGESIZE</p>
-<pre><code class="lang-c">size_t zmalloc_get_rss(<span class="hljs-keyword">void</span>) {
-    <span class="hljs-keyword">int</span> page = sysconf(_SC_PAGESIZE);
-    size_t rss;
-    <span class="hljs-keyword">char</span> buf[<span class="hljs-number">4096</span>];
-    <span class="hljs-keyword">char</span> filename[<span class="hljs-number">256</span>];
-    <span class="hljs-keyword">int</span> fd, count;
-    <span class="hljs-keyword">char</span> *p, *x;
-
-    <span class="hljs-built_in">snprintf</span>(filename,<span class="hljs-number">256</span>,<span class="hljs-string">"/proc/%d/stat"</span>,getpid());
-    <span class="hljs-keyword">if</span> ((fd = open(filename,O_RDONLY)) == -<span class="hljs-number">1</span>) <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
-    <span class="hljs-keyword">if</span> (read(fd,buf,<span class="hljs-number">4096</span>) &lt;= <span class="hljs-number">0</span>) {
-        close(fd);
-        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
-    }
-    close(fd);
-
-    p = buf;
-    count = <span class="hljs-number">23</span>; <span class="hljs-comment">/* RSS is the 24th field in /proc/&lt;pid&gt;/stat */</span>
-    <span class="hljs-keyword">while</span>(p &amp;&amp; count--) {
-        p = <span class="hljs-built_in">strchr</span>(p,<span class="hljs-string">' '</span>);
-        <span class="hljs-keyword">if</span> (p) p++;
-    }
-    <span class="hljs-keyword">if</span> (!p) <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
-    x = <span class="hljs-built_in">strchr</span>(p,<span class="hljs-string">' '</span>);
-    <span class="hljs-keyword">if</span> (!x) <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
-    *x = <span class="hljs-string">'\0'</span>;
-
-    rss = strtoll(p,NULL,<span class="hljs-number">10</span>);
-    rss *= page;
-    <span class="hljs-keyword">return</span> rss;
-}
-</code></pre>
-<h2 id="">获取子进程占用内存的大小</h2>
-<p>该信息主要是从/proc/self/smaps中的Private_Dirty字段读取，Private_Dirty和Private_Clean,进程fork之后，开始内存是共享的，即从父进程那里继承的内存空间都是Private_Clean,运行一段时间之后,子进程对继承的内存空间做了修改，这部分内存就不能与父进程共享了，需要多占用，这部分就是Private_Dirty。</p>
-<p>获取private dirty是在zmalloc_get_private_dirty中定义的</p>
-<pre><code class="lang-c">size_t zmalloc_get_private_dirty(<span class="hljs-keyword">void</span>) {
-    <span class="hljs-keyword">char</span> line[<span class="hljs-number">1024</span>];
-    size_t pd = <span class="hljs-number">0</span>;
-    FILE *fp = fopen(<span class="hljs-string">"/proc/self/smaps"</span>,<span class="hljs-string">"r"</span>);
-
-    <span class="hljs-keyword">if</span> (!fp) <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
-    <span class="hljs-keyword">while</span>(fgets(line,<span class="hljs-keyword">sizeof</span>(line),fp) != NULL) {
-        <span class="hljs-keyword">if</span> (<span class="hljs-built_in">strncmp</span>(line,<span class="hljs-string">"Private_Dirty:"</span>,<span class="hljs-number">14</span>) == <span class="hljs-number">0</span>) {
-            <span class="hljs-keyword">char</span> *p = <span class="hljs-built_in">strchr</span>(line,<span class="hljs-string">'k'</span>);
-            <span class="hljs-keyword">if</span> (p) {
-                *p = <span class="hljs-string">'\0'</span>;
-                pd += strtol(line+<span class="hljs-number">14</span>,NULL,<span class="hljs-number">10</span>) * <span class="hljs-number">1024</span>;
-            }
-        }
-    }
-    fclose(fp);
-    <span class="hljs-keyword">return</span> pd;
-}
-</code></pre>
-<h2 id="">统计碎片率</h2>
-<p>redis中对碎片率的定义是：Fragmentation = rss/allocates-bytes</p>
-<p>是在函数zmalloc_get_fragmentation_ratio中完成</p>
-<pre><code class="lang-c"><span class="hljs-keyword">float</span> zmalloc_get_fragmentation_ratio(<span class="hljs-keyword">void</span>) {
-    <span class="hljs-keyword">return</span> (<span class="hljs-keyword">float</span>)zmalloc_get_rss()/zmalloc_used_memory();
-}
+<pre><code class="lang-c"><span class="hljs-comment">// redis2.8</span>
+<span class="hljs-comment">/* Replication (master) */</span>
+<span class="hljs-keyword">int</span> slaveseldb;                 <span class="hljs-comment">/* Last SELECTed DB in replication output */</span>
+<span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> master_repl_offset;   <span class="hljs-comment">/* Global replication offset */</span>
+<span class="hljs-keyword">int</span> repl_ping_slave_period;     <span class="hljs-comment">/* Master pings the slave every N seconds */</span>
+<span class="hljs-keyword">char</span> *repl_backlog;             <span class="hljs-comment">/* Replication backlog for partial syncs */</span>
+<span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> repl_backlog_size;    <span class="hljs-comment">/* Backlog circular buffer size */</span>
+<span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> repl_backlog_histlen; <span class="hljs-comment">/* Backlog actual data length */</span>
+<span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> repl_backlog_idx;     <span class="hljs-comment">/* Backlog circular buffer current offset */</span>
+<span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> repl_backlog_off;     <span class="hljs-comment">/* Replication offset of first byte in the
+                                   backlog buffer. */</span>
+time_t repl_backlog_time_limit; <span class="hljs-comment">/* Time without slaves after the backlog
+                                   gets released. */</span>
+time_t repl_no_slaves_since;    <span class="hljs-comment">/* We have no slaves since that time.
+                                   Only valid if server.slaves len is 0. */</span>
+<span class="hljs-keyword">int</span> repl_min_slaves_to_write;   <span class="hljs-comment">/* Min number of slaves to write. */</span>
+<span class="hljs-keyword">int</span> repl_min_slaves_max_lag;    <span class="hljs-comment">/* Max lag of &lt;count&gt; slaves to write. */</span>
+<span class="hljs-keyword">int</span> repl_good_slaves_count;     <span class="hljs-comment">/* Number of slaves with lag &lt;= max_lag. */</span>
+<span class="hljs-keyword">int</span> repl_diskless_sync;         <span class="hljs-comment">/* Send RDB to slaves sockets directly. */</span>
+<span class="hljs-keyword">int</span> repl_diskless_sync_delay;   <span class="hljs-comment">/* Delay to start a diskless repl BGSAVE. */</span>
+<span class="hljs-comment">/* Replication (slave) */</span>
+<span class="hljs-keyword">char</span> *masterauth;               <span class="hljs-comment">/* AUTH with this password with master */</span>
+<span class="hljs-keyword">char</span> *masterhost;               <span class="hljs-comment">/* Hostname of master */</span>
+<span class="hljs-keyword">int</span> masterport;                 <span class="hljs-comment">/* Port of master */</span>
+<span class="hljs-keyword">int</span> repl_timeout;               <span class="hljs-comment">/* Timeout after N seconds of master idle */</span>
+redisClient *master;     <span class="hljs-comment">/* Client that is master for this slave */</span>
+redisClient *cached_master; <span class="hljs-comment">/* Cached master to be reused for PSYNC. */</span>
+<span class="hljs-keyword">int</span> repl_syncio_timeout; <span class="hljs-comment">/* Timeout for synchronous I/O calls */</span>
+<span class="hljs-keyword">int</span> repl_state;          <span class="hljs-comment">/* Replication status if the instance is a slave */</span>
+off_t repl_transfer_size; <span class="hljs-comment">/* Size of RDB to read from master during sync. */</span>
+off_t repl_transfer_read; <span class="hljs-comment">/* Amount of RDB read from master during sync. */</span>
+off_t repl_transfer_last_fsync_off; <span class="hljs-comment">/* Offset when we fsync-ed last time. */</span>
+<span class="hljs-keyword">int</span> repl_transfer_s;     <span class="hljs-comment">/* Slave -&gt; Master SYNC socket */</span>
+<span class="hljs-keyword">int</span> repl_transfer_fd;    <span class="hljs-comment">/* Slave -&gt; Master SYNC temp file descriptor */</span>
+<span class="hljs-keyword">char</span> *repl_transfer_tmpfile; <span class="hljs-comment">/* Slave-&gt; master SYNC temp file name */</span>
+time_t repl_transfer_lastio; <span class="hljs-comment">/* Unix time of the latest read, for timeout */</span>
+<span class="hljs-keyword">int</span> repl_serve_stale_data; <span class="hljs-comment">/* Serve stale data when link is down? */</span>
+<span class="hljs-keyword">int</span> repl_slave_ro;          <span class="hljs-comment">/* Slave is read only? */</span>
+time_t repl_down_since; <span class="hljs-comment">/* Unix time at which link with master went down */</span>
+<span class="hljs-keyword">int</span> repl_disable_tcp_nodelay;   <span class="hljs-comment">/* Disable TCP_NODELAY after SYNC? */</span>
+<span class="hljs-keyword">int</span> slave_priority;             <span class="hljs-comment">/* Reported in INFO and used by Sentinel. */</span>
+<span class="hljs-keyword">char</span> repl_master_runid[REDIS_RUN_ID_SIZE+<span class="hljs-number">1</span>];  <span class="hljs-comment">/* Master run id for PSYNC. */</span>
+<span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> repl_master_initial_offset;         <span class="hljs-comment">/* Master PSYNC offset. */</span>
+<span class="hljs-comment">/* Replication script cache. */</span>
+dict *repl_scriptcache_dict;        <span class="hljs-comment">/* SHA1 all slaves are aware of. */</span>
+<span class="hljs-built_in">list</span> *repl_scriptcache_fifo;        <span class="hljs-comment">/* First in, first out LRU eviction. */</span>
+<span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> repl_scriptcache_size; <span class="hljs-comment">/* Max number of elements. */</span>
 </code></pre>
 
                     
@@ -856,10 +905,10 @@
         </div>
 
         
-        <a href="../../redis/others/closeAofFile.html" class="navigation navigation-prev " aria-label="Previous page: redis关闭旧aof文件时的处理"><i class="fa fa-angle-left"></i></a>
+        <a href="../../redis/replication/README.html" class="navigation navigation-prev " aria-label="Previous page: replication"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../../redis/end/README.html" class="navigation navigation-next " aria-label="Next page: 小结"><i class="fa fa-angle-right"></i></a>
+        <a href="../../redis/replication/principle.html" class="navigation navigation-next " aria-label="Next page: replication的运作原理"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>

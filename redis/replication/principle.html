@@ -1,0 +1,1339 @@
+<!DOCTYPE HTML>
+<html lang="en-US" >
+    
+    <head>
+        
+        <meta charset="UTF-8">
+        <title>replication的运作原理 | 我的笔记</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 1.3.3">
+        <meta name="HandheldFriendly" content="true"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../../gitbook/images/apple-touch-icon-precomposed-152.png">
+        <link rel="shortcut icon" href="../../gitbook/images/favicon.ico" type="image/x-icon">
+        
+    
+    
+    <link rel="next" href="../../redis/replication/PartialResynchronization.html" />
+    
+    
+    <link rel="prev" href="../../redis/replication/configuration.html" />
+    
+
+        
+    </head>
+    <body>
+        
+        
+<link rel="stylesheet" href="../../gitbook/style.css">
+
+
+        
+    <div class="book" data-level="3.4.2" data-basepath="../.." data-revision="1417064222089">
+    
+
+<div class="book-summary">
+    <div class="book-search">
+        <input type="text" placeholder="Type to search" class="form-control" />
+    </div>
+    <ul class="summary">
+        
+    	
+    	
+    	
+
+        
+
+        
+    
+        
+        <li class="chapter " data-level="0" data-path="index.html">
+            
+                
+                    <a href="../../index.html">
+                        <i class="fa fa-check"></i>
+                        
+                         Introduction
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1" data-path="gitbook/README.html">
+            
+                
+                    <a href="../../gitbook/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.</b>
+                        
+                         gitbook的使用
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="1.1" data-path="gitbook/install/README.html">
+            
+                
+                    <a href="../../gitbook/install/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.1.</b>
+                        
+                         安装
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="1.1.1" data-path="gitbook/install/nodejs.html">
+            
+                
+                    <a href="../../gitbook/install/nodejs.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.1.1.</b>
+                        
+                         nodejs安装
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1.1.2" data-path="gitbook/install/gitbook.html">
+            
+                
+                    <a href="../../gitbook/install/gitbook.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.1.2.</b>
+                        
+                         gitbook安装
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1.2" data-path="gitbook/usage/README.html">
+            
+                
+                    <a href="../../gitbook/usage/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.2.</b>
+                        
+                         使用
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="1.2.1" data-path="gitbook/usage/command.html">
+            
+                
+                    <a href="../../gitbook/usage/command.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.2.1.</b>
+                        
+                         gitbook命令
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1.2.2" data-path="gitbook/usage/architecture.html">
+            
+                
+                    <a href="../../gitbook/usage/architecture.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.2.2.</b>
+                        
+                         gitbook目录结构
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1.2.3" data-path="gitbook/usage/output.html">
+            
+                
+                    <a href="../../gitbook/usage/output.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.2.3.</b>
+                        
+                         gitbook输出
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1.3" data-path="gitbook/end/README.html">
+            
+                
+                    <a href="../../gitbook/end/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.3.</b>
+                        
+                         小结
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2" data-path="vim/README.html">
+            
+                
+                    <a href="../../vim/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.</b>
+                        
+                         vim插件
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="2.1" data-path="vim/install.html">
+            
+                
+                    <a href="../../vim/install.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.1.</b>
+                        
+                         安装
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2.2" data-path="vim/plugin.html">
+            
+                
+                    <a href="../../vim/plugin.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.2.</b>
+                        
+                         我使用的插件
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3" data-path="redis/README.html">
+            
+                
+                    <a href="../../redis/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.</b>
+                        
+                         redis
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="3.1" data-path="redis/aelibrary/README.html">
+            
+                
+                    <a href="../../redis/aelibrary/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.1.</b>
+                        
+                         redis事件库
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="3.1.1" data-path="redis/aelibrary/reactor.html">
+            
+                
+                    <a href="../../redis/aelibrary/reactor.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.1.1.</b>
+                        
+                         reactor
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.1.2" data-path="redis/aelibrary/flow.html">
+            
+                
+                    <a href="../../redis/aelibrary/flow.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.1.2.</b>
+                        
+                         ae库初始化流程
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.1.3" data-path="redis/aelibrary/eventprocess.html">
+            
+                
+                    <a href="../../redis/aelibrary/eventprocess.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.1.3.</b>
+                        
+                         ae库事件处理
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.2" data-path="redis/presistence/README.html">
+            
+                
+                    <a href="../../redis/presistence/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.2.</b>
+                        
+                         rdb &amp; aof
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="3.2.1" data-path="redis/presistence/rdb.html">
+            
+                
+                    <a href="../../redis/presistence/rdb.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.2.1.</b>
+                        
+                         rdb相关的处理
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.2.2" data-path="redis/presistence/aof.html">
+            
+                
+                    <a href="../../redis/presistence/aof.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.2.2.</b>
+                        
+                         aof相关处理
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.2.3" data-path="redis/presistence/advantagesAndDisadvantages.html">
+            
+                
+                    <a href="../../redis/presistence/advantagesAndDisadvantages.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.2.3.</b>
+                        
+                         rdb&amp;aof优缺点
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.3" data-path="redis/datastructure/README.html">
+            
+                
+                    <a href="../../redis/datastructure/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.3.</b>
+                        
+                         redis数据结构
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="3.3.1" data-path="redis/datastructure/dict.html">
+            
+                
+                    <a href="../../redis/datastructure/dict.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.3.1.</b>
+                        
+                         字典
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.4" data-path="redis/replication/README.html">
+            
+                
+                    <a href="../../redis/replication/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.4.</b>
+                        
+                         replication
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="3.4.1" data-path="redis/replication/configuration.html">
+            
+                
+                    <a href="../../redis/replication/configuration.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.4.1.</b>
+                        
+                         replication相关的配置
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter active" data-level="3.4.2" data-path="redis/replication/principle.html">
+            
+                
+                    <a href="../../redis/replication/principle.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.4.2.</b>
+                        
+                         replication的运作原理
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.4.3" data-path="redis/replication/PartialResynchronization.html">
+            
+                
+                    <a href="../../redis/replication/PartialResynchronization.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.4.3.</b>
+                        
+                         replication部分同步
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.5" data-path="redis/sentinel/README.html">
+            
+                
+                    <a href="../../redis/sentinel/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.5.</b>
+                        
+                         sentinel
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.6" data-path="redis/sharding/README.html">
+            
+                
+                    <a href="../../redis/sharding/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.6.</b>
+                        
+                         cluster &amp; sharding
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.7" data-path="redis/others/README.html">
+            
+                
+                    <a href="../../redis/others/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.7.</b>
+                        
+                         others
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="3.7.1" data-path="redis/others/closeAofFile.html">
+            
+                
+                    <a href="../../redis/others/closeAofFile.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.7.1.</b>
+                        
+                         redis关闭旧aof文件时的处理
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.7.2" data-path="redis/others/memory.html">
+            
+                
+                    <a href="../../redis/others/memory.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.7.2.</b>
+                        
+                         redis内存处理
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.8" data-path="redis/end/README.html">
+            
+                
+                    <a href="../../redis/end/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.8.</b>
+                        
+                         小结
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+
+        
+        <li class="divider"></li>
+        <li>
+            <a href="http://www.gitbook.io/" target="blank" class="gitbook-link">Published using GitBook</a>
+        </li>
+        
+    </ul>
+</div>
+
+    <div class="book-body">
+        <div class="body-inner">
+            <div class="book-header">
+    <!-- Actions Left -->
+    <a href="#" class="btn pull-left toggle-summary" aria-label="Toggle summary"><i class="fa fa-align-justify"></i></a>
+    <a href="#" class="btn pull-left toggle-search" aria-label="Toggle search"><i class="fa fa-search"></i></a>
+    
+    <div id="font-settings-wrapper" class="dropdown pull-left">
+        <a href="#" class="btn toggle-dropdown" aria-label="Toggle font settings"><i class="fa fa-font"></i>
+        </a>
+        <div class="dropdown-menu font-settings">
+    <div class="dropdown-caret">
+        <span class="caret-outer"></span>
+        <span class="caret-inner"></span>
+    </div>
+
+    <div class="buttons">
+        <button type="button" id="reduce-font-size" class="button size-2">A</button>
+        <button type="button" id="enlarge-font-size" class="button size-2">A</button>
+    </div>
+
+    <div class="buttons font-family-list">
+        <button type="button" data-font="0" class="button">Serif</button>
+        <button type="button" data-font="1" class="button">Sans</button>
+    </div>
+
+    <div class="buttons color-theme-list">
+        <button type="button" id="color-theme-preview-0" class="button size-3" data-theme="0">White</button>
+        <button type="button" id="color-theme-preview-1" class="button size-3" data-theme="1">Sepia</button>
+        <button type="button" id="color-theme-preview-2" class="button size-3" data-theme="2">Night</button>
+    </div>
+</div>
+
+    </div>
+
+    <!-- Actions Right -->
+    
+    <div class="dropdown pull-right">
+        <a href="#" class="btn toggle-dropdown" aria-label="Toggle share dropdown"><i class="fa fa-share-alt"></i>
+        </a>
+        <div class="dropdown-menu font-settings dropdown-left">
+            <div class="dropdown-caret">
+                <span class="caret-outer"></span>
+                <span class="caret-inner"></span>
+            </div>
+            <div class="buttons">
+                <button type="button" data-sharing="twitter" class="button">Twitter</button>
+                <button type="button" data-sharing="google-plus" class="button">Google</button>
+                <button type="button" data-sharing="facebook" class="button">Facebook</button>
+                <button type="button" data-sharing="weibo" class="button">Weibo</button>
+                <button type="button" data-sharing="instapaper" class="button">Instapaper</button>
+            </div>
+        </div>
+    </div>
+    
+
+    
+    <a href="#" target="_blank" class="btn pull-right google-plus-sharing-link sharing-link" data-sharing="google-plus" aria-label="Share on Google Plus"><i class="fa fa-google-plus"></i></a>
+    
+    
+    <a href="#" target="_blank" class="btn pull-right facebook-sharing-link sharing-link" data-sharing="facebook" aria-label="Share on Facebook"><i class="fa fa-facebook"></i></a>
+    
+    
+    <a href="#" target="_blank" class="btn pull-right twitter-sharing-link sharing-link" data-sharing="twitter" aria-label="Share on Twitter"><i class="fa fa-twitter"></i></a>
+    
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="../../" >我的笔记</a>
+    </h1>
+</div>
+
+            <div class="page-wrapper" tabindex="-1">
+                <div class="page-inner">
+                
+                
+                    <section class="normal" id="section-gitbook_29">
+                    
+                        <h1 id="replication">replication同步原理</h1>
+<h2 id="">同步的过程</h2>
+<h2 id="masterslave">master和slave同步交互的过程</h2>
+<ol>
+<li>无论是初次连接还是重新连接，当建立一个服务器时，从服务器都将向主服务器发送一个sync命令。</li>
+<li>主服务器在收到sync命令后，开始执行bgsave，并在保存操作执行期间，将所有新执行的写入命令都保存到一个缓冲区里面。</li>
+<li>当bgsave执行完毕后，主服务器将执行保存操作所得的.rdb文件发送给从服务器，从服务器接收到这个.rdb文件，并将文件中的数据载入内存中。</li>
+<li>之后主服务器会以Redis命令协议的格式，将写命令缓冲区中累积的所有内容都发送给从服务器。</li>
+</ol>
+<h2 id="masterslave">master和slave同步过程中，状态的变化</h2>
+<ol>
+<li>如果redis作为slave运行，则全局变量server.repl_state的状态有REDIS_REPL_NODE(不处于复制状态)，REDIS_REPL_CONNECT(需要和master建立连接)，REDIS_REPL_CONNECTING(正在建立连接),REDIS_REPL_CONNECTED(已和master建立连接)四种。在读入slaveof配置或者发布slaveof命令后，server.repl_state取值为REDIS_REPL_CONNECT，在connectWithMaster调用后，状态变为REDIS_REPL_CONNECTING状态，然后在syncWithMaster跟master执行第一次同步后，取值变为REDIS_REPL_CONNECTED。</li>
+<li>如果redis作为master运行，则对应某个客户端连接的变量slave.repl_state的状态有REDIS_REPL_WAIT_BGSAVE_START(等待bgsave运行),REDIS_REPL_WAIT_BGSAVE_END(bgsave已dump db,该bulk传输了),REDIS_REPL_SEND_BULK(正在传输bulk)，REDIS_REPL_ONLINE(已完成开始的bulk传输，以后只需要发送更新了)。对于slave客户端(发布sync命令)，一开始slave.repl_state都处于REDIS_REPL_WAIT_BGSAVE_START状态(后面详解syncCommand函数),然后在后台dump db后(backgroundSaveDoneHandler函数),处于REDIS_REPL_WAIT_BGSAVE_END状态，然后updateSlavesWaitingBgsave会将状态置为REDIS_REPL_SEND_BULK，并设置write事件的函数sendBulkToSlave,在sendBulkToSlave运行后，状态变为REDIS_REPL_ONLINE了，此后master会一直调用replicationFeedSlaves给处于REDIS_REPL_ONLINE状态的slave发送新命令。</li>
+</ol>
+<h2 id="">源码分析</h2>
+<h3 id="redisslave">redis作为slave时的行为分析</h3>
+<p>redis作为slave时，需要在配置文件中指定masterip,在loadServerConfig读取配置文件的时候，会将server.repl_state设置位REDIS_REPL_CONNECT状态。处于此状态的redis需要运行到serverCron后才能使用replicationCron()来和master进行初始化同步，replicationCron会调用syncWithMaster，syncWithMaster中会使用sync命令来建立主从关系，另外syncWithMaster中使用syncRead和syncWrite两个阻塞函数来接收和发送数据，因此，redis作为slave在最初建立主从关系时是阻塞的。</p>
+<pre><code class="lang-c"><span class="hljs-comment">// redis.c/serverCron函数中的部分</span>
+run_with_period(<span class="hljs-number">1000</span>) replicationCron();
+</code></pre>
+<pre><code class="lang-c"><span class="hljs-comment">// replication.c/replicationCron()</span>
+<span class="hljs-keyword">void</span> replicationCron(<span class="hljs-keyword">void</span>) {
+    <span class="hljs-comment">// ----------------------省略300行----------------------------</span>
+    <span class="hljs-comment">/* Check if we should connect to a MASTER */</span>
+    <span class="hljs-keyword">if</span> (server.repl_state == REDIS_REPL_CONNECT) {
+        redisLog(REDIS_NOTICE,<span class="hljs-string">"Connecting to MASTER..."</span>);
+        <span class="hljs-keyword">if</span> (connectWithMaster() == REDIS_OK) {
+            redisLog(REDIS_NOTICE,<span class="hljs-string">"MASTER &lt;-&gt; SLAVE sync started"</span>);
+        }
+    }
+    <span class="hljs-comment">// ----------------------省略300行----------------------------</span>
+}
+</code></pre>
+<pre><code class="lang-c"><span class="hljs-comment">// replication.c/connectWithMaster()</span>
+<span class="hljs-keyword">int</span> connectWithMaster(<span class="hljs-keyword">void</span>) {
+    <span class="hljs-keyword">int</span> fd;
+
+    fd = anetTcpNonBlockConnect(NULL,server.masterhost,server.masterport);
+    <span class="hljs-keyword">if</span> (fd == -<span class="hljs-number">1</span>) {
+        redisLog(REDIS_WARNING,<span class="hljs-string">"Unable to connect to MASTER: %s"</span>,
+            strerror(errno));
+        <span class="hljs-keyword">return</span> REDIS_ERR;
+    }
+
+    <span class="hljs-comment">// 会调用syncWithMaster</span>
+    <span class="hljs-keyword">if</span> (aeCreateFileEvent(server.el,fd,AE_READABLE|AE_WRITABLE,syncWithMaster,NULL) ==
+            AE_ERR)
+    {
+        close(fd);
+        redisLog(REDIS_WARNING,<span class="hljs-string">"Can't create readable event for SYNC"</span>);
+        <span class="hljs-keyword">return</span> REDIS_ERR;
+    }
+
+    server.repl_transfer_lastio = server.unixtime;
+    server.repl_transfer_s = fd;
+    <span class="hljs-comment">// 状态发生了变化</span>
+    server.repl_state = REDIS_REPL_CONNECTING;
+    <span class="hljs-keyword">return</span> REDIS_OK;
+}
+</code></pre>
+<pre><code class="lang-c">// replication.c/syncWithMaster()
+void syncWithMaster(aeEventLoop *el, int fd, void *privdata, int mask) {
+    char tmpfile[256], *err;
+    int dfd, maxtries = 5;
+    int sockerr = 0;
+    socklen_t errlen = sizeof(sockerr);
+    REDIS_NOTUSED(el);
+    REDIS_NOTUSED(privdata);
+    REDIS_NOTUSED(mask);
+
+    /* If this event fired after the user turned the instance into a master
+     * with SLAVEOF NO ONE we must just return ASAP. */
+    if (server.repl_state == REDIS_REPL_NONE) {
+        close(fd);
+        return;
+    }
+
+    /* Check for errors in the socket. */
+    if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &amp;sockerr, &amp;errlen) == -1)
+        sockerr = errno;
+    if (sockerr) {
+        aeDeleteFileEvent(server.el,fd,AE_READABLE|AE_WRITABLE);
+        redisLog(REDIS_WARNING,"Error condition on socket for SYNC: %s",
+            strerror(sockerr));
+        goto error;
+    }
+
+    /* If we were connecting, it's time to send a non blocking PING, we want to
+     * make sure the master is able to reply before going into the actual
+     * replication process where we have long timeouts in the order of
+     * seconds (in the meantime the slave would block). */
+    if (server.repl_state == REDIS_REPL_CONNECTING) {
+        redisLog(REDIS_NOTICE,"Non blocking connect for SYNC fired the event.");
+        /* Delete the writable event so that the readable event remains
+         * registered and we can wait for the PONG reply. */
+        aeDeleteFileEvent(server.el,fd,AE_WRITABLE);
+        // 状态发生改变
+        server.repl_state = REDIS_REPL_RECEIVE_PONG;
+        /* Send the PING, don't check for errors at all, we have the timeout
+         * that will take care about this. */
+        syncWrite(fd,"PING\r\n",6,100);
+        return;
+    }
+
+    /* Receive the PONG command. */
+    if (server.repl_state == REDIS_REPL_RECEIVE_PONG) {
+        char buf[1024];
+
+        /* Delete the readable event, we no longer need it now that there is
+         * the PING reply to read. */
+        aeDeleteFileEvent(server.el,fd,AE_READABLE);
+
+        /* Read the reply with explicit timeout. */
+        buf[0] = '\0';
+        if (syncReadLine(fd,buf,sizeof(buf),
+            server.repl_syncio_timeout*1000) == -1)
+        {
+            redisLog(REDIS_WARNING,
+                "I/O error reading PING reply from master: %s",
+                strerror(errno));
+            goto error;
+        }
+
+        /* We don't care about the reply, it can be +PONG or an error since
+         * the server requires AUTH. As long as it replies correctly, it's
+         * fine from our point of view. */
+        if (buf[0] != '-' &amp;&amp; buf[0] != '+') {
+            redisLog(REDIS_WARNING,"Unexpected reply to PING from master.");
+            goto error;
+        } else {
+            redisLog(REDIS_NOTICE,
+                "Master replied to PING, replication can continue...");
+        }
+    }
+
+    /* AUTH with the master if required. */
+    if(server.masterauth) {
+        err = sendSynchronousCommand(fd,"AUTH",server.masterauth,NULL);
+        if (err) {
+            redisLog(REDIS_WARNING,"Unable to AUTH to MASTER: %s",err);
+            sdsfree(err);
+            goto error;
+        }
+    }
+
+    /* Set the slave port, so that Master's INFO command can list the
+     * slave listening port correctly. */
+    {
+        sds port = sdsfromlonglong(server.port);
+        err = sendSynchronousCommand(fd,"REPLCONF","listening-port",port,
+                                         NULL);
+        sdsfree(port);
+        /* Ignore the error if any, not all the Redis versions support
+         * REPLCONF listening-port. */
+        if (err) {
+            redisLog(REDIS_NOTICE,"(non critical): Master does not understand
+                    REPLCONF listening-port: %s", err);
+            sdsfree(err);
+        }
+    }
+
+    /* Issue the SYNC command */
+    if (syncWrite(fd,"SYNC\r\n",6,server.repl_syncio_timeout*1000) == -1) {
+        redisLog(REDIS_WARNING,"I/O error writing to MASTER: %s",
+            strerror(errno));
+        goto error;
+    }
+
+    /* Prepare a suitable temp file for bulk transfer */
+    while(maxtries--) {
+        snprintf(tmpfile,256,
+            "temp-%d.%ld.rdb",(int)server.unixtime,(long int)getpid());
+        dfd = open(tmpfile,O_CREAT|O_WRONLY|O_EXCL,0644);
+        if (dfd != -1) break;
+        sleep(1);
+    }
+    if (dfd == -1) {
+        redisLog(REDIS_WARNING,"Opening the temp file needed for MASTER &lt;-&gt; SLAVE
+                synchronization: %s",strerror(errno));
+        goto error;
+    }
+
+    /* Setup the non blocking download of the bulk file. */
+    if (aeCreateFileEvent(server.el,fd, AE_READABLE,readSyncBulkPayload,NULL)
+            == AE_ERR)
+    {
+        redisLog(REDIS_WARNING,"Can't create readable event for SYNC");
+        goto error;
+    }
+
+    // 状态发生了变化
+    server.repl_state = REDIS_REPL_TRANSFER;
+    server.repl_transfer_size = -1;
+    server.repl_transfer_read = 0;
+    server.repl_transfer_last_fsync_off = 0;
+    server.repl_transfer_fd = dfd;
+    server.repl_transfer_lastio = server.unixtime;
+    server.repl_transfer_tmpfile = zstrdup(tmpfile);
+    return;
+
+error:
+    close(fd);
+    server.repl_transfer_s = -1;
+    server.repl_state = REDIS_REPL_CONNECT;
+    return;
+}
+</code></pre>
+<pre><code class="lang-c"><span class="hljs-comment">// replication.c/readSyncBulkPayload()</span>
+<span class="hljs-comment">/* Asynchronously read the SYNC payload we receive from a master */</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">define</span> REPL_MAX_WRITTEN_BEFORE_FSYNC (1024*1024*8) /* 8 MB */</span>
+<span class="hljs-keyword">void</span> readSyncBulkPayload(aeEventLoop *el, <span class="hljs-keyword">int</span> fd, <span class="hljs-keyword">void</span> *privdata, <span class="hljs-keyword">int</span> mask) {
+    <span class="hljs-keyword">char</span> buf[<span class="hljs-number">4096</span>];
+    ssize_t nread, readlen;
+    off_t left;
+    REDIS_NOTUSED(el);
+    REDIS_NOTUSED(privdata);
+    REDIS_NOTUSED(mask);
+
+    <span class="hljs-comment">// 首先读取服务器端传过来的rdb文件大小</span>
+    <span class="hljs-keyword">if</span> (server.repl_transfer_size == -<span class="hljs-number">1</span>) {
+        <span class="hljs-keyword">if</span> (syncReadLine(fd,buf,<span class="hljs-number">1024</span>,server.repl_syncio_timeout*<span class="hljs-number">1000</span>) == -<span class="hljs-number">1</span>) {
+            redisLog(REDIS_WARNING,
+                <span class="hljs-string">"I/O error reading bulk count from MASTER: %s"</span>,
+                strerror(errno));
+            <span class="hljs-keyword">goto</span> error;
+        }
+        <span class="hljs-comment">// ----------------------省略300行(错误处理)----------------------------</span>
+        server.repl_transfer_size = strtol(buf+<span class="hljs-number">1</span>,NULL,<span class="hljs-number">10</span>);
+        redisLog(REDIS_NOTICE,
+            <span class="hljs-string">"MASTER &lt;-&gt; SLAVE sync: receiving %ld bytes from master"</span>,
+            server.repl_transfer_size);
+        <span class="hljs-keyword">return</span>;
+    }
+
+    <span class="hljs-comment">/* Read bulk data */</span>
+    left = server.repl_transfer_size - server.repl_transfer_read;
+    readlen = (left &lt; (<span class="hljs-keyword">signed</span>)<span class="hljs-keyword">sizeof</span>(buf)) ? left : (<span class="hljs-keyword">signed</span>)<span class="hljs-keyword">sizeof</span>(buf);
+    nread = read(fd,buf,readlen);
+    <span class="hljs-keyword">if</span> (nread &lt;= <span class="hljs-number">0</span>) {
+        redisLog(REDIS_WARNING,<span class="hljs-string">"I/O error trying to sync with MASTER: %s"</span>,
+            (nread == -<span class="hljs-number">1</span>) ? strerror(errno) : <span class="hljs-string">"connection lost"</span>);
+        replicationAbortSyncTransfer();
+        <span class="hljs-keyword">return</span>;
+    }
+    server.repl_transfer_lastio = server.unixtime;
+    <span class="hljs-keyword">if</span> (write(server.repl_transfer_fd,buf,nread) != nread) {
+        redisLog(REDIS_WARNING,<span class="hljs-string">"Write error or short write writing to the DB"</span>
+            <span class="hljs-string">"dump file needed for MASTER &lt;-&gt; SLAVE synchronization: %s"</span>, strerror(errno));
+        <span class="hljs-keyword">goto</span> error;
+    }
+    server.repl_transfer_read += nread;
+
+    <span class="hljs-comment">// 刷新部分数据，如果最后全部接收完成后在刷新，并且文件较大时，会导致比较大的延迟</span>
+    <span class="hljs-keyword">if</span> (server.repl_transfer_read &gt;=
+        server.repl_transfer_last_fsync_off + REPL_MAX_WRITTEN_BEFORE_FSYNC)
+    {
+        off_t sync_size = server.repl_transfer_read -
+            server.repl_transfer_last_fsync_off;
+        rdb_fsync_range(server.repl_transfer_fd,
+            server.repl_transfer_last_fsync_off, sync_size);
+        server.repl_transfer_last_fsync_off += sync_size;
+    }
+
+    <span class="hljs-comment">// 检查是否传输完成</span>
+    <span class="hljs-keyword">if</span> (server.repl_transfer_read == server.repl_transfer_size) {
+        <span class="hljs-keyword">if</span> (rename(server.repl_transfer_tmpfile,server.rdb_filename) == -<span class="hljs-number">1</span>) {
+            redisLog(REDIS_WARNING,<span class="hljs-string">"Failed trying to rename the temp DB into dump.rdb"</span>
+                    <span class="hljs-string">"in MASTER &lt;-&gt; SLAVE synchronization: %s"</span>, strerror(errno));
+            replicationAbortSyncTransfer();
+            <span class="hljs-keyword">return</span>;
+        }
+        redisLog(REDIS_NOTICE, <span class="hljs-string">"MASTER &lt;-&gt; SLAVE sync: Loading DB in memory"</span>);
+        emptyDb();
+        <span class="hljs-comment">/* Before loading the DB into memory we need to delete the readable
+         * handler, otherwise it will get called recursively since
+         * rdbLoad() will call the event loop to process events from time to
+         * time for non blocking loading. */</span>
+        aeDeleteFileEvent(server.el,server.repl_transfer_s,AE_READABLE);
+        <span class="hljs-keyword">if</span> (rdbLoad(server.rdb_filename) != REDIS_OK) {
+            redisLog(REDIS_WARNING,<span class="hljs-string">"Failed trying to load the MASTER synchronization DB from disk"</span>);
+            replicationAbortSyncTransfer();
+            <span class="hljs-keyword">return</span>;
+        }
+        <span class="hljs-comment">/* Final setup of the connected slave &lt;- master link */</span>
+        zfree(server.repl_transfer_tmpfile);
+        close(server.repl_transfer_fd);
+        server.master = createClient(server.repl_transfer_s);
+        server.master-&gt;flags |= REDIS_MASTER;
+        server.master-&gt;authenticated = <span class="hljs-number">1</span>;
+        <span class="hljs-comment">// 状态发生了变化</span>
+        server.repl_state = REDIS_REPL_CONNECTED;
+        redisLog(REDIS_NOTICE, <span class="hljs-string">"MASTER &lt;-&gt; SLAVE sync: Finished with success"</span>);
+        <span class="hljs-comment">/* Restart the AOF subsystem now that we finished the sync. This
+         * will trigger an AOF rewrite, and when done will start appending
+         * to the new file. */</span>
+        <span class="hljs-keyword">if</span> (server.aof_state != REDIS_AOF_OFF) {
+            <span class="hljs-keyword">int</span> retry = <span class="hljs-number">10</span>;
+
+            stopAppendOnly();
+            <span class="hljs-keyword">while</span> (retry-- &amp;&amp; startAppendOnly() == REDIS_ERR) {
+                redisLog(REDIS_WARNING,<span class="hljs-string">"Failed enabling the AOF after successful"</span>
+                        <span class="hljs-string">"master synchrnization! Trying it again in one second."</span>);
+                sleep(<span class="hljs-number">1</span>);
+            }
+            <span class="hljs-keyword">if</span> (!retry) {
+                redisLog(REDIS_WARNING,<span class="hljs-string">"FATAL: this slave instance finished the synchronization"</span>
+                    <span class="hljs-string">"with its master, but the AOF can't be turned on. Exiting now."</span>);
+                <span class="hljs-built_in">exit</span>(<span class="hljs-number">1</span>);
+            }
+        }
+    }
+
+    <span class="hljs-keyword">return</span>;
+
+error:
+    replicationAbortSyncTransfer();
+    <span class="hljs-keyword">return</span>;
+}
+</code></pre>
+<h3 id="redismaster">redis作为master时的行为分析</h3>
+<p>redis作为master时，当收到slave发过来的sync命令后，会执行syncCommand,如果rdb的持久化没有执行，则执行rdbSaveBackground()函数(该函数会启动一个进程)，slave.repl_state的状态变为REDIS_REPL_WAIT_BGSAVE_END,进程结束后，会在serverCron()中执行backgroundSaveDoneHandler()函数，backgroundSaveDoneHandler()函数会执行updateSlavesWaitingBgsave()函数，该函数会注册一个写事件(对应的回调函数位sendBulkToSlave)，向slave同步rdb文件的数据，updateSlavesWaitingBgsave函数执行完毕后，slave.repl_state的状态变为REDIS_REPL_SEND_BULK,sendBulkToSlave函数在发送完rdb文件的数据后，slave.repl_state的状态变为REDIS_REPL_ONLINE。</p>
+<pre><code class="lang-c"><span class="hljs-comment">// redis.c/syncCommand()</span>
+<span class="hljs-keyword">void</span> syncCommand(redisClient *c) {
+    <span class="hljs-comment">// ----------------------省略300行----------------------------</span>
+    <span class="hljs-comment">// 检查是否已经有 BGSAVE 在执行，否则就创建一个新的 BGSAVE 任务</span>
+    <span class="hljs-keyword">if</span> (server.rdb_child_pid != -<span class="hljs-number">1</span>) {
+        <span class="hljs-comment">// 已有 BGSAVE 在执行，检查它能否用于当前客户端的 SYNC 操作</span>
+        redisClient *slave;
+        listNode *ln;
+        listIter li;
+
+        <span class="hljs-comment">// 检查是否有其他客户端在等待 SYNC 进行</span>
+        listRewind(server.slaves,&amp;li);
+        <span class="hljs-keyword">while</span>((ln = listNext(&amp;li))) {
+            slave = ln-&gt;value;
+            <span class="hljs-keyword">if</span> (slave-&gt;replstate == REDIS_REPL_WAIT_BGSAVE_END) <span class="hljs-keyword">break</span>;
+        }
+        <span class="hljs-keyword">if</span> (ln) {
+            <span class="hljs-comment">// 找到一个同样在等到 SYNC 的客户端</span>
+            <span class="hljs-comment">// 设置当前客户端的状态，并复制 buffer 。</span>
+            copyClientOutputBuffer(c,slave);
+            c-&gt;replstate = REDIS_REPL_WAIT_BGSAVE_END;
+            redisLog(REDIS_NOTICE,<span class="hljs-string">"Waiting for end of BGSAVE for SYNC"</span>);
+        } <span class="hljs-keyword">else</span> {
+            <span class="hljs-comment">// 没有客户端在等待 SYNC ，当前客户端只能等待下次 BGSAVE 进行</span>
+            c-&gt;replstate = REDIS_REPL_WAIT_BGSAVE_START;
+            redisLog(REDIS_NOTICE,<span class="hljs-string">"Waiting for next BGSAVE for SYNC"</span>);
+        }
+    } <span class="hljs-keyword">else</span> {
+        <span class="hljs-comment">// 没有 BGSAVE 在进行，自己启动一个。</span>
+        <span class="hljs-comment">/* Ok we don't have a BGSAVE in progress, let's start one */</span>
+        redisLog(REDIS_NOTICE,<span class="hljs-string">"Starting BGSAVE for SYNC"</span>);
+        <span class="hljs-comment">// 后台重写rdb</span>
+        <span class="hljs-keyword">if</span> (rdbSaveBackground(server.rdb_filename) != REDIS_OK) {
+            redisLog(REDIS_NOTICE,<span class="hljs-string">"Replication failed, can't BGSAVE"</span>);
+            addReplyError(c,<span class="hljs-string">"Unable to perform background save"</span>);
+            <span class="hljs-keyword">return</span>;
+        }
+        <span class="hljs-comment">// 等待 BGSAVE 结束,状态发生了变化</span>
+        c-&gt;replstate = REDIS_REPL_WAIT_BGSAVE_END;
+    }
+    c-&gt;repldbfd = -<span class="hljs-number">1</span>;
+    c-&gt;flags |= REDIS_SLAVE;
+    c-&gt;slaveseldb = <span class="hljs-number">0</span>;
+    listAddNodeTail(server.slaves,c);
+
+    <span class="hljs-keyword">return</span>;
+}
+</code></pre>
+<pre><code class="lang-c"><span class="hljs-comment">// rdbSaveBackground()会启动一个进程，进行rdb的持久化，持久化完成后，serverCron会</span>
+<span class="hljs-comment">// 执行backgroundSaveDoneHandler,该函数会调用updateSlavesWaitingBgsave()函数</span>
+<span class="hljs-keyword">void</span> updateSlavesWaitingBgsave(<span class="hljs-keyword">int</span> bgsaveerr) {
+    listNode *ln;
+    <span class="hljs-keyword">int</span> startbgsave = <span class="hljs-number">0</span>;
+    listIter li;
+
+    <span class="hljs-comment">// 遍历所有附属节点</span>
+    listRewind(server.slaves,&amp;li);
+    <span class="hljs-keyword">while</span>((ln = listNext(&amp;li))) {
+        redisClient *slave = ln-&gt;value;
+
+        <span class="hljs-keyword">if</span> (slave-&gt;replstate == REDIS_REPL_WAIT_BGSAVE_START) {
+            <span class="hljs-comment">// 告诉那些这次不能同步的客户端，可以等待下次 BGSAVE 了。</span>
+            startbgsave = <span class="hljs-number">1</span>;
+            slave-&gt;replstate = REDIS_REPL_WAIT_BGSAVE_END;
+        } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (slave-&gt;replstate == REDIS_REPL_WAIT_BGSAVE_END) {
+            <span class="hljs-comment">// 这些是本次可以同步的客户端</span>
+
+            <span class="hljs-keyword">struct</span> redis_stat buf;
+
+            <span class="hljs-comment">// 如果 BGSAVE 失败，释放 slave 节点</span>
+            <span class="hljs-keyword">if</span> (bgsaveerr != REDIS_OK) {
+                freeClient(slave);
+                redisLog(REDIS_WARNING,<span class="hljs-string">"SYNC failed. BGSAVE child returned an error"</span>);
+                <span class="hljs-keyword">continue</span>;
+            }
+            <span class="hljs-comment">// 打开 .rdb 文件</span>
+            <span class="hljs-keyword">if</span> ((slave-&gt;repldbfd = open(server.rdb_filename,O_RDONLY)) == -<span class="hljs-number">1</span> ||
+                <span class="hljs-comment">// 如果打开失败，释放并清除</span>
+                redis_fstat(slave-&gt;repldbfd,&amp;buf) == -<span class="hljs-number">1</span>) {
+                freeClient(slave);
+                redisLog(REDIS_WARNING,<span class="hljs-string">"SYNC failed. Can't open/stat DB after BGSAVE: %s"</span>,
+                        strerror(errno));
+                <span class="hljs-keyword">continue</span>;
+            }
+            <span class="hljs-comment">// 偏移量</span>
+            slave-&gt;repldboff = <span class="hljs-number">0</span>;
+            <span class="hljs-comment">// 数据库大小（.rdb 文件的大小）</span>
+            slave-&gt;repldbsize = buf.st_size;
+            <span class="hljs-comment">// 状态发生了变化,开始要传输文件内容</span>
+            slave-&gt;replstate = REDIS_REPL_SEND_BULK;
+            <span class="hljs-comment">// 清除 slave-&gt;fd 的写事件</span>
+            aeDeleteFileEvent(server.el,slave-&gt;fd,AE_WRITABLE);
+            <span class="hljs-comment">// 创建一个将 .rdb 文件内容发送到附属节点的写事件</span>
+            <span class="hljs-keyword">if</span> (aeCreateFileEvent(server.el, slave-&gt;fd, AE_WRITABLE, sendBulkToSlave,
+                                    slave) == AE_ERR) {
+                freeClient(slave);
+                <span class="hljs-keyword">continue</span>;
+            }
+        }
+    }
+    <span class="hljs-comment">//-----------------此处省略三百行----------------------</span>
+}
+</code></pre>
+<pre><code class="lang-c"><span class="hljs-comment">// replication.c/sendBulkToSlave实现</span>
+<span class="hljs-keyword">void</span> sendBulkToSlave(aeEventLoop *el, <span class="hljs-keyword">int</span> fd, <span class="hljs-keyword">void</span> *privdata, <span class="hljs-keyword">int</span> mask) {
+    redisClient *slave = privdata;
+    REDIS_NOTUSED(el);
+    REDIS_NOTUSED(mask);
+    <span class="hljs-keyword">char</span> buf[REDIS_IOBUF_LEN];
+    ssize_t nwritten, buflen;
+
+    <span class="hljs-comment">// 刚开始执行 .rdb 文件的发送？</span>
+    <span class="hljs-keyword">if</span> (slave-&gt;repldboff == <span class="hljs-number">0</span>) {
+        <span class="hljs-comment">/* Write the bulk write count before to transfer the DB. In theory here
+         * we don't know how much room there is in the output buffer of the
+         * socket, but in pratice SO_SNDLOWAT (the minimum count for output
+         * operations) will never be smaller than the few bytes we need. */</span>
+        sds bulkcount;
+
+        <span class="hljs-comment">// 首先将主节点 .rdb 文件的大小发送到附属节点</span>
+        bulkcount = sdscatprintf(sdsempty(),<span class="hljs-string">"$%lld\r\n"</span>,(<span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span>)
+            slave-&gt;repldbsize);
+        <span class="hljs-keyword">if</span> (write(fd,bulkcount,sdslen(bulkcount)) != (<span class="hljs-keyword">signed</span>)sdslen(bulkcount))
+        {
+            sdsfree(bulkcount);
+            freeClient(slave);
+            <span class="hljs-keyword">return</span>;
+        }
+        sdsfree(bulkcount);
+    }
+
+    <span class="hljs-comment">// 设置主节点 .rdb 文件的偏移量</span>
+    lseek(slave-&gt;repldbfd,slave-&gt;repldboff,SEEK_SET);
+
+    <span class="hljs-comment">// 读取主节点 .rdb 文件的数据到 buf</span>
+    buflen = read(slave-&gt;repldbfd,buf,REDIS_IOBUF_LEN);
+    <span class="hljs-keyword">if</span> (buflen &lt;= <span class="hljs-number">0</span>) {
+        <span class="hljs-comment">// 主节点 .rdb 文件读取错误，返回</span>
+        redisLog(REDIS_WARNING,<span class="hljs-string">"Read error sending DB to slave: %s"</span>,
+            (buflen == <span class="hljs-number">0</span>) ? <span class="hljs-string">"premature EOF"</span> : strerror(errno));
+        freeClient(slave);
+        <span class="hljs-keyword">return</span>;
+    }
+
+    <span class="hljs-comment">// 将 buf 发送给附属节点</span>
+    <span class="hljs-keyword">if</span> ((nwritten = write(fd,buf,buflen)) == -<span class="hljs-number">1</span>) {
+        <span class="hljs-comment">// 附属节点写入出错，返回</span>
+        redisLog(REDIS_VERBOSE,<span class="hljs-string">"Write error sending DB to slave: %s"</span>,
+            strerror(errno));
+        freeClient(slave);
+        <span class="hljs-keyword">return</span>;
+    }
+
+    <span class="hljs-comment">// 更新偏移量</span>
+    slave-&gt;repldboff += nwritten;
+
+    <span class="hljs-comment">// .rdb 文件全部发送完毕</span>
+    <span class="hljs-keyword">if</span> (slave-&gt;repldboff == slave-&gt;repldbsize) {
+        <span class="hljs-comment">// 关闭 .rdb 文件</span>
+        close(slave-&gt;repldbfd);
+        <span class="hljs-comment">// 重置</span>
+        slave-&gt;repldbfd = -<span class="hljs-number">1</span>;
+        <span class="hljs-comment">// 删除发送事件</span>
+        aeDeleteFileEvent(server.el,slave-&gt;fd,AE_WRITABLE);
+        <span class="hljs-comment">// 状态发生了变化</span>
+        slave-&gt;replstate = REDIS_REPL_ONLINE;
+        <span class="hljs-comment">// TODO：</span>
+        <span class="hljs-keyword">if</span> (aeCreateFileEvent(server.el, slave-&gt;fd, AE_WRITABLE,
+            sendReplyToClient, slave) == AE_ERR) {
+            freeClient(slave);
+            <span class="hljs-keyword">return</span>;
+        }
+        redisLog(REDIS_NOTICE,<span class="hljs-string">"Synchronization with slave succeeded"</span>);
+    }
+}
+</code></pre>
+<pre><code class="lang-c"><span class="hljs-comment">// slave.repl_state的状态变成REDIS_REPL_ONLINE后，master只需要同步发送数据到slave，</span>
+<span class="hljs-comment">// 这是在redis.c/propagate中实现的,具体的实现是在replicationFeedSlaves中实现</span>
+<span class="hljs-keyword">void</span> propagate(<span class="hljs-keyword">struct</span> redisCommand *cmd, <span class="hljs-keyword">int</span> dbid, robj **argv, <span class="hljs-keyword">int</span> argc, <span class="hljs-keyword">int</span> flags)
+{
+    <span class="hljs-keyword">if</span> (server.aof_state != REDIS_AOF_OFF &amp;&amp; flags &amp; REDIS_PROPAGATE_AOF)
+        feedAppendOnlyFile(cmd,dbid,argv,argc);
+    <span class="hljs-keyword">if</span> (flags &amp; REDIS_PROPAGATE_REPL &amp;&amp; listLength(server.slaves))
+        replicationFeedSlaves(server.slaves,dbid,argv,argc);
+}
+</code></pre>
+<pre><code class="lang-c"><span class="hljs-comment">// 还有一个和Replication相关的命令，slaveof，该命令对应的处理函数是slaveCommand,</span>
+<span class="hljs-comment">// 该命令主要是几个状态的切换</span>
+<span class="hljs-keyword">void</span> slaveofCommand(redisClient *c) {
+    <span class="hljs-keyword">if</span> (!strcasecmp(c-&gt;argv[<span class="hljs-number">1</span>]-&gt;ptr,<span class="hljs-string">"no"</span>) &amp;&amp;
+        !strcasecmp(c-&gt;argv[<span class="hljs-number">2</span>]-&gt;ptr,<span class="hljs-string">"one"</span>)) {
+        <span class="hljs-keyword">if</span> (server.masterhost) {
+            sdsfree(server.masterhost);
+            server.masterhost = NULL;
+            <span class="hljs-keyword">if</span> (server.master) freeClient(server.master);
+            <span class="hljs-keyword">if</span> (server.repl_state == REDIS_REPL_TRANSFER)
+                replicationAbortSyncTransfer();
+            <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (server.repl_state == REDIS_REPL_CONNECTING ||
+                     server.repl_state == REDIS_REPL_RECEIVE_PONG)
+                undoConnectWithMaster();
+            server.repl_state = REDIS_REPL_NONE;
+            redisLog(REDIS_NOTICE,<span class="hljs-string">"MASTER MODE enabled (user request)"</span>);
+        }
+    } <span class="hljs-keyword">else</span> {
+        <span class="hljs-comment">// 将主变为从</span>
+        <span class="hljs-keyword">long</span> port;
+
+        <span class="hljs-keyword">if</span> ((getLongFromObjectOrReply(c, c-&gt;argv[<span class="hljs-number">2</span>], &amp;port, NULL) != REDIS_OK))
+            <span class="hljs-keyword">return</span>;
+
+        <span class="hljs-comment">/* Check if we are already attached to the specified slave */</span>
+        <span class="hljs-keyword">if</span> (server.masterhost &amp;&amp; !strcasecmp(server.masterhost,c-&gt;argv[<span class="hljs-number">1</span>]-&gt;ptr)
+            &amp;&amp; server.masterport == port) {
+            redisLog(REDIS_NOTICE,<span class="hljs-string">"SLAVE OF would result into synchronization with the master we"</span>
+                            <span class="hljs-string">"are already connected with. No operation performed."</span>);
+            addReplySds(c,sdsnew(<span class="hljs-string">"+OK Already connected to specified master\r\n"</span>));
+            <span class="hljs-keyword">return</span>;
+        }
+        <span class="hljs-comment">/* There was no previous master or the user specified a different one,
+         * we can continue. */</span>
+        sdsfree(server.masterhost);
+        server.masterhost = sdsdup(c-&gt;argv[<span class="hljs-number">1</span>]-&gt;ptr);
+        server.masterport = port;
+        <span class="hljs-keyword">if</span> (server.master) freeClient(server.master);
+        disconnectSlaves(); <span class="hljs-comment">/* Force our slaves to resync with us as well. */</span>
+        <span class="hljs-keyword">if</span> (server.repl_state == REDIS_REPL_TRANSFER)
+            replicationAbortSyncTransfer();
+        server.repl_state = REDIS_REPL_CONNECT;
+        redisLog(REDIS_NOTICE,<span class="hljs-string">"SLAVE OF %s:%d enabled (user request)"</span>,
+            server.masterhost, server.masterport);
+    }
+    addReply(c,shared.ok);
+}
+</code></pre>
+
+                    
+                    </section>
+                
+                
+                </div>
+            </div>
+        </div>
+
+        
+        <a href="../../redis/replication/configuration.html" class="navigation navigation-prev " aria-label="Previous page: replication相关的配置"><i class="fa fa-angle-left"></i></a>
+        
+        
+        <a href="../../redis/replication/PartialResynchronization.html" class="navigation navigation-next " aria-label="Next page: replication部分同步"><i class="fa fa-angle-right"></i></a>
+        
+    </div>
+</div>
+
+        
+<script src="../../gitbook/app.js"></script>
+
+    
+    <script src="https://cdn.mathjax.org/mathjax/2.4-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+    
+    <script src="../../gitbook/plugins/gitbook-plugin-mathjax/plugin.js"></script>
+    
+
+<script>
+require(["gitbook"], function(gitbook) {
+    var config = {"fontSettings":{"theme":null,"family":"sans","size":2}};
+    gitbook.start(config);
+});
+</script>
+
+        
+    </body>
+    
+</html>
