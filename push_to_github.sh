@@ -10,6 +10,8 @@ cp -r _book/* book_end/
 
 cd book_end
 
+git pull origin gh-pages
+
 git add .
 
 git commit -a -m "publish"
