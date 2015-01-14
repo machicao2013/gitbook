@@ -31,3 +31,10 @@
         - [redis关闭旧aof文件时的处理](redis/others/closeAofFile.md)
         - [redis内存处理](redis/others/memory.md)
     - [小结](redis/end/README.md)
+* [java笔记](java/README.md) *
+    - [java基础知识](java/generic/abc.md)
+    - [java初始化](java/class/initialize.md)
+    - [java内部类](java/class/innerclass.md)
+    - [java泛型](java/generic/generic.md)
+    - [java多线程](java/multithread/README.md)
+        - [基本用法](java/multithread/abc.md)
