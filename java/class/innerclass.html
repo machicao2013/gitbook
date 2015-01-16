@@ -4,7 +4,7 @@
     <head>
         
         <meta charset="UTF-8">
-        <title>nodejs安装 | 我的笔记</title>
+        <title>java内部类 | 我的笔记</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.3.3">
@@ -17,10 +17,10 @@
         
     
     
-    <link rel="next" href="../../gitbook/install/gitbook.html" />
+    <link rel="next" href="../../java/generic/generic.html" />
     
     
-    <link rel="prev" href="../../gitbook/install/README.html" />
+    <link rel="prev" href="../../java/class/initialize.html" />
     
 
         
@@ -32,7 +32,7 @@
 
 
         
-    <div class="book" data-level="1.1.1" data-basepath="../.." data-revision="1421407458879">
+    <div class="book" data-level="4.3" data-basepath="../.." data-revision="1421407458879">
     
 
 <div class="book-summary">
@@ -98,7 +98,7 @@
                 
     
         
-        <li class="chapter active" data-level="1.1.1" data-path="gitbook/install/nodejs.html">
+        <li class="chapter " data-level="1.1.1" data-path="gitbook/install/nodejs.html">
             
                 
                     <a href="../../gitbook/install/nodejs.html">
@@ -701,7 +701,7 @@
         </li>
     
         
-        <li class="chapter " data-level="4.3" data-path="java/class/innerclass.html">
+        <li class="chapter active" data-level="4.3" data-path="java/class/innerclass.html">
             
                 
                     <a href="../../java/class/innerclass.html">
@@ -864,33 +864,73 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_6">
+                    <section class="normal" id="section-gitbook_13">
                     
-                        <h1 id="nodejs">nodejs的安装</h1>
-<blockquote>
-<p>Node.js 是一个基于Chrome JavaScript 运行时建立的一个平台， 用来方便地搭建快速的 易于扩展的网络应用· Node.js 借助事件驱动， 非阻塞I/O 模型变得轻量和高效， 非常适合 运行在分布式设备 的 数据密集型 的实时应用。<a href="http://baike.baidu.com/view/3974030.htm?fr=aladdin" target="_blank">reference</a></p>
-</blockquote>
-<p>nodejs安装脚本</p>
-<pre><code class="lang-bash"><span class="hljs-shebang">#!/bin/bash
-</span>
-NODEJS_HOME=~/opt/node-v0.<span class="hljs-number">10.33</span>
+                        <h1 id="java">java内部类</h1>
+<p><strong> 内部类的优点 </strong></p>
+<ol>
+<li>内部类可以访问该类定义所在作用域中的数据，包括私有数据。</li>
+<li>内部类可以对同一个包中的其他类隐藏。</li>
+<li>当想要使用回调又不想写很多的代码，可以使用匿名内部类。</li>
+</ol>
+<p><strong> 使用内部类访问对象状态 </strong></p>
+<ol>
+<li><p>一个例子</p>
+<pre><code class="lang-java"> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">TalkingClock</span> </span>{
+     <span class="hljs-keyword">private</span> <span class="hljs-keyword">int</span> interval;
+     <span class="hljs-keyword">private</span> <span class="hljs-keyword">boolean</span> beep;
 
-test <span class="hljs-operator">-f</span> node-v0.<span class="hljs-number">10.33</span>.tar.gz || wget http://nodejs.org/dist/v0.<span class="hljs-number">10.33</span>/node-v0.<span class="hljs-number">10.33</span>.tar.gz
+     <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">TalkingClock</span><span class="hljs-params">(<span class="hljs-keyword">int</span> interval, <span class="hljs-keyword">boolean</span> beep)</span> </span>{
+         <span class="hljs-keyword">this</span>.interval = interval;
+         <span class="hljs-keyword">this</span>.beep = beep;
+     }
 
-tar zxvf node-v0.<span class="hljs-number">10.33</span>.tar.gz
+     <span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">TimePrinter</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">ActionListener</span> </span>{
+         <span class="hljs-annotation">@Override</span>
+             <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">actionPerformed</span><span class="hljs-params">(ActionEvent e)</span> </span>{
+                 Date now = <span class="hljs-keyword">new</span> Date();
+                 <span class="hljs-comment">// 使用了外部类的私有成员变量</span>
+                 <span class="hljs-keyword">if</span> (beep) {
+                     System.out.println(<span class="hljs-string">"At the tone, the time is "</span> + now);
+                 }
+             }
+     }
 
-<span class="hljs-built_in">cd</span> node-v0.<span class="hljs-number">10.33</span>
+     <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">start</span><span class="hljs-params">()</span> </span>{
+         ActionListener listener = <span class="hljs-keyword">new</span> TimePrinter();
+         Timer timer = <span class="hljs-keyword">new</span> Timer(<span class="hljs-keyword">this</span>.interval, listener);
+         timer.start();
+     }
+ }
 
-test <span class="hljs-operator">-d</span> <span class="hljs-variable">${NODEJS_HOME}</span> || mkdir -p <span class="hljs-variable">${NODEJS_HOME}</span>
-
-./configure --prefix=<span class="hljs-variable">${NODEJS_HOME}</span>
-
-make &amp;&amp; make install
-
-<span class="hljs-built_in">echo</span> <span class="hljs-string">"export PATH=<span class="hljs-variable">${NODEJS_HOME}</span>:<span class="hljs-variable">${PATH}</span>"</span> &gt;&gt; ~/.bashrc
-
-<span class="hljs-built_in">source</span> ~/.bashrc
+ <span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Test1</span> </span>{
+     <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>{
+         TalkingClock clock = <span class="hljs-keyword">new</span> TalkingClock(<span class="hljs-number">10</span>, <span class="hljs-keyword">true</span>);
+         clock.start();
+         <span class="hljs-comment">//  new TalkingClock.TimePrinter();  // error</span>
+         <span class="hljs-comment">// 生成TimePrinter对象的正确方法</span>
+         TimePrinter instance = clock.<span class="hljs-keyword">new</span> TimePrinter();
+     }
+ }
 </code></pre>
+</li>
+<li>从上面的例子可以看出，内部类TimePrinter访问了外部类的beep私有成员变量。从传统意义上讲，一个方法可以引用调用这个方法的对象数据域。内部类既可以访问自身的数据域，以可以访问创建它的外围类对象的数据域。</li>
+<li><strong>为了能够运行这个程序，内部类的对象总有一个隐式引用，它指向了创建它的外部类对象,这个引用在内部类的定义中是不可见的</strong>。如下图所示:<center><img src="../../imgs/innerclass01.png" alt=""></center>
+
+</li>
+</ol>
+<p><strong> 局部内部类 </strong></p>
+<ol>
+<li>局部类不能使用private或者public来修饰，其作用域被限定在声明这个局部类的块中。</li>
+<li>局部类有一个优势，即对外部世界可以完全地隐藏起来。即只有定义该类的方法可以访问它。</li>
+<li>与其它内部类相比，局部类还有一个优点。它们不仅能够访问包含他们的外部类，还可以访问包含他们的外部类，还可以访问局部变量，不过，那些局部变量必须被声明为final。</li>
+<li>final关键字可以应用于局部变量、实例变量和静态变量。在所有这些情况下，它们的含义都是：在创建这个变量之后，只能够为之赋值一次。此后，再也不能修改它的值了。这就是final。其赋值可以在代码块，构造函数，定义final变量的时候。</li>
+</ol>
+<p><strong> 静态内部类 </strong></p>
+<ol>
+<li>有时候，使用内部类只是为了把一个隐藏在另外一个类的内部，<strong>并不需要内部类引用外部类对象</strong>，为此，可以将内部类声明为static,以便取消产生的引用。</li>
+<li>在接口中申明的类自动成为static和final。</li>
+</ol>
 
                     
                     </section>
@@ -901,10 +941,10 @@ make &amp;&amp; make install
         </div>
 
         
-        <a href="../../gitbook/install/README.html" class="navigation navigation-prev " aria-label="Previous page: 安装"><i class="fa fa-angle-left"></i></a>
+        <a href="../../java/class/initialize.html" class="navigation navigation-prev " aria-label="Previous page: java初始化"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../../gitbook/install/gitbook.html" class="navigation navigation-next " aria-label="Next page: gitbook安装"><i class="fa fa-angle-right"></i></a>
+        <a href="../../java/generic/generic.html" class="navigation navigation-next " aria-label="Next page: java泛型"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>

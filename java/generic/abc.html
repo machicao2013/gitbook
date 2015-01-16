@@ -4,7 +4,7 @@
     <head>
         
         <meta charset="UTF-8">
-        <title>nodejs安装 | 我的笔记</title>
+        <title>java基础知识 | 我的笔记</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.3.3">
@@ -17,10 +17,10 @@
         
     
     
-    <link rel="next" href="../../gitbook/install/gitbook.html" />
+    <link rel="next" href="../../java/class/initialize.html" />
     
     
-    <link rel="prev" href="../../gitbook/install/README.html" />
+    <link rel="prev" href="../../java/README.html" />
     
 
         
@@ -32,7 +32,7 @@
 
 
         
-    <div class="book" data-level="1.1.1" data-basepath="../.." data-revision="1421407458879">
+    <div class="book" data-level="4.1" data-basepath="../.." data-revision="1421407458879">
     
 
 <div class="book-summary">
@@ -98,7 +98,7 @@
                 
     
         
-        <li class="chapter active" data-level="1.1.1" data-path="gitbook/install/nodejs.html">
+        <li class="chapter " data-level="1.1.1" data-path="gitbook/install/nodejs.html">
             
                 
                     <a href="../../gitbook/install/nodejs.html">
@@ -669,7 +669,7 @@
                 
     
         
-        <li class="chapter " data-level="4.1" data-path="java/generic/abc.html">
+        <li class="chapter active" data-level="4.1" data-path="java/generic/abc.html">
             
                 
                     <a href="../../java/generic/abc.html">
@@ -864,33 +864,66 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_6">
+                    <section class="normal" id="section-gitbook_14">
                     
-                        <h1 id="nodejs">nodejs的安装</h1>
-<blockquote>
-<p>Node.js 是一个基于Chrome JavaScript 运行时建立的一个平台， 用来方便地搭建快速的 易于扩展的网络应用· Node.js 借助事件驱动， 非阻塞I/O 模型变得轻量和高效， 非常适合 运行在分布式设备 的 数据密集型 的实时应用。<a href="http://baike.baidu.com/view/3974030.htm?fr=aladdin" target="_blank">reference</a></p>
-</blockquote>
-<p>nodejs安装脚本</p>
-<pre><code class="lang-bash"><span class="hljs-shebang">#!/bin/bash
-</span>
-NODEJS_HOME=~/opt/node-v0.<span class="hljs-number">10.33</span>
-
-test <span class="hljs-operator">-f</span> node-v0.<span class="hljs-number">10.33</span>.tar.gz || wget http://nodejs.org/dist/v0.<span class="hljs-number">10.33</span>/node-v0.<span class="hljs-number">10.33</span>.tar.gz
-
-tar zxvf node-v0.<span class="hljs-number">10.33</span>.tar.gz
-
-<span class="hljs-built_in">cd</span> node-v0.<span class="hljs-number">10.33</span>
-
-test <span class="hljs-operator">-d</span> <span class="hljs-variable">${NODEJS_HOME}</span> || mkdir -p <span class="hljs-variable">${NODEJS_HOME}</span>
-
-./configure --prefix=<span class="hljs-variable">${NODEJS_HOME}</span>
-
-make &amp;&amp; make install
-
-<span class="hljs-built_in">echo</span> <span class="hljs-string">"export PATH=<span class="hljs-variable">${NODEJS_HOME}</span>:<span class="hljs-variable">${PATH}</span>"</span> &gt;&gt; ~/.bashrc
-
-<span class="hljs-built_in">source</span> ~/.bashrc
+                        <h1 id="java">java基础知识</h1>
+<p><strong> equals方法 </strong></p>
+<ol>
+<li>Java语言规范要求equals方法具有下面的特性：<ol>
+<li>自反性：对任何非空引用x，x.equals(x)应该返回true。</li>
+<li>对称性：对任何引用x和y，当且仅当y.equals(x)返回true，x.equals(y)也应该返回true。</li>
+<li>传递性：对于任何引用x、y和z，如果x.equals(y)返回true，y.equals(z)返回true，则x.equals(z)也应该返回true</li>
+<li>一致性：如果x和y引用的对象没有发生变化，反复调用x.equals(y)应该返回同样的结果。</li>
+</ol>
+</li>
+<li>一个标准的equals的实现：<pre><code class="lang-java"> <span class="hljs-annotation">@Override</span>
+ <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">equals</span><span class="hljs-params">(Object obj)</span> </span>{
+     <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span> == obj)
+         <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+     <span class="hljs-keyword">if</span> (obj == <span class="hljs-keyword">null</span>)
+         <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+     <span class="hljs-keyword">if</span> (getClass() != obj.getClass())
+         <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+     EqualMethodTest other = (EqualMethodTest) obj;
+     <span class="hljs-keyword">if</span> (age != other.age)
+         <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+     <span class="hljs-keyword">if</span> (Double.doubleToLongBits(height) != Double.doubleToLongBits(other.height))
+         <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+     <span class="hljs-keyword">if</span> (name == <span class="hljs-keyword">null</span>) {
+         <span class="hljs-keyword">if</span> (other.name != <span class="hljs-keyword">null</span>)
+             <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+     } <span class="hljs-function"><span class="hljs-keyword">else</span> <span class="hljs-title">if</span> <span class="hljs-params">(!name.equals(other.name)</span>)
+         <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span></span>;
+     <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+ }
 </code></pre>
+</li>
+</ol>
+<p><strong> hashCode方法 </strong></p>
+<ol>
+<li>equals方法与hashCode方法的定义必须一致：如果x.equals(y)返回true，那么x.hashCode()就必须与y.hashCode()具有相同的值。</li>
+<li>如果重新定义equals方法，就必须从新定义hashCode方法，以便用户可以将对象插入到散列表中。</li>
+</ol>
+<p><strong> 数组与列表 </strong></p>
+<ol>
+<li><p>数组与泛型相比，有两个重要的不同：</p>
+<ol>
+<li><p>数组是协变的(convariant)。就是表示如果Sub为Super的子类型，那么数组类型Sub[]就是Super[]的子类型。相反，泛型则是不可变的(invariant):对于任意两个不同的类型Type1和Type2，List<Type1>即不是List<Type2>的子类型，也不是List<Type2>的超类型。</p>
+<pre><code class="lang-java">Object[] objs = <span class="hljs-keyword">new</span> Object[<span class="hljs-number">10</span>];
+String[] strs1 = <span class="hljs-keyword">new</span> String[<span class="hljs-number">2</span>];
+String[] strs2 = <span class="hljs-keyword">new</span> String[<span class="hljs-number">10</span>];
+objs = strs1;
+objs = strs2;
+System.out.println(strs1 <span class="hljs-keyword">instanceof</span> Object[]); <span class="hljs-comment">// true</span>
+System.out.println(strs2 <span class="hljs-keyword">instanceof</span> Object[]); <span class="hljs-comment">// true</span>
+
+List&lt;Object&gt; ol = <span class="hljs-keyword">new</span> ArrayList&lt;Long&gt;();  <span class="hljs-comment">// compile error</span>
+</code></pre>
+</li>
+<li>数组是具体化的(reified)。因此数组会在运行时才知道并检查它们的元素类型约束。相比之下，泛型则是通过擦除来实现的。因此泛型只在编译时强化它们的类型信息，并在运行时丢弃它们的元素类型信息。</li>
+</ol>
+</li>
+</ol>
 
                     
                     </section>
@@ -901,10 +934,10 @@ make &amp;&amp; make install
         </div>
 
         
-        <a href="../../gitbook/install/README.html" class="navigation navigation-prev " aria-label="Previous page: 安装"><i class="fa fa-angle-left"></i></a>
+        <a href="../../java/README.html" class="navigation navigation-prev " aria-label="Previous page: java笔记"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../../gitbook/install/gitbook.html" class="navigation navigation-next " aria-label="Next page: gitbook安装"><i class="fa fa-angle-right"></i></a>
+        <a href="../../java/class/initialize.html" class="navigation navigation-next " aria-label="Next page: java初始化"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>

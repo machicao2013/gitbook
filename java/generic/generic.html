@@ -4,7 +4,7 @@
     <head>
         
         <meta charset="UTF-8">
-        <title>nodejs安装 | 我的笔记</title>
+        <title>java泛型 | 我的笔记</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.3.3">
@@ -17,10 +17,10 @@
         
     
     
-    <link rel="next" href="../../gitbook/install/gitbook.html" />
+    <link rel="next" href="../../java/multithread/README.html" />
     
     
-    <link rel="prev" href="../../gitbook/install/README.html" />
+    <link rel="prev" href="../../java/class/innerclass.html" />
     
 
         
@@ -32,7 +32,7 @@
 
 
         
-    <div class="book" data-level="1.1.1" data-basepath="../.." data-revision="1421407458879">
+    <div class="book" data-level="4.4" data-basepath="../.." data-revision="1421407458879">
     
 
 <div class="book-summary">
@@ -98,7 +98,7 @@
                 
     
         
-        <li class="chapter active" data-level="1.1.1" data-path="gitbook/install/nodejs.html">
+        <li class="chapter " data-level="1.1.1" data-path="gitbook/install/nodejs.html">
             
                 
                     <a href="../../gitbook/install/nodejs.html">
@@ -717,7 +717,7 @@
         </li>
     
         
-        <li class="chapter " data-level="4.4" data-path="java/generic/generic.html">
+        <li class="chapter active" data-level="4.4" data-path="java/generic/generic.html">
             
                 
                     <a href="../../java/generic/generic.html">
@@ -864,33 +864,129 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_6">
+                    <section class="normal" id="section-gitbook_16">
                     
-                        <h1 id="nodejs">nodejs的安装</h1>
-<blockquote>
-<p>Node.js 是一个基于Chrome JavaScript 运行时建立的一个平台， 用来方便地搭建快速的 易于扩展的网络应用· Node.js 借助事件驱动， 非阻塞I/O 模型变得轻量和高效， 非常适合 运行在分布式设备 的 数据密集型 的实时应用。<a href="http://baike.baidu.com/view/3974030.htm?fr=aladdin" target="_blank">reference</a></p>
-</blockquote>
-<p>nodejs安装脚本</p>
-<pre><code class="lang-bash"><span class="hljs-shebang">#!/bin/bash
-</span>
-NODEJS_HOME=~/opt/node-v0.<span class="hljs-number">10.33</span>
+                        <h1 id="java-generic-programming">Java Generic Programming</h1>
+<p>泛型编程意味着编写的代码可以被很多不同类型的对象所重用。</p>
+<p><strong> 简单泛型 </strong></p>
+<p>泛型类的定义</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Pair</span>&lt;<span class="hljs-title">T</span>&gt; </span>{
+    <span class="hljs-keyword">private</span> T first;
+    <span class="hljs-keyword">private</span> T second;
 
-test <span class="hljs-operator">-f</span> node-v0.<span class="hljs-number">10.33</span>.tar.gz || wget http://nodejs.org/dist/v0.<span class="hljs-number">10.33</span>/node-v0.<span class="hljs-number">10.33</span>.tar.gz
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Pair</span><span class="hljs-params">()</span> </span>{
+        first = second = <span class="hljs-keyword">null</span>;
+    }
 
-tar zxvf node-v0.<span class="hljs-number">10.33</span>.tar.gz
+    <span class="hljs-function"><span class="hljs-keyword">public</span> T <span class="hljs-title">getFirst</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> first;
+    }
 
-<span class="hljs-built_in">cd</span> node-v0.<span class="hljs-number">10.33</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setFirst</span><span class="hljs-params">(T first)</span> </span>{
+        <span class="hljs-keyword">this</span>.first = first;
+    }
 
-test <span class="hljs-operator">-d</span> <span class="hljs-variable">${NODEJS_HOME}</span> || mkdir -p <span class="hljs-variable">${NODEJS_HOME}</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> T <span class="hljs-title">getSecond</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> second;
+    }
 
-./configure --prefix=<span class="hljs-variable">${NODEJS_HOME}</span>
-
-make &amp;&amp; make install
-
-<span class="hljs-built_in">echo</span> <span class="hljs-string">"export PATH=<span class="hljs-variable">${NODEJS_HOME}</span>:<span class="hljs-variable">${PATH}</span>"</span> &gt;&gt; ~/.bashrc
-
-<span class="hljs-built_in">source</span> ~/.bashrc
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setSecond</span><span class="hljs-params">(T second)</span> </span>{
+        <span class="hljs-keyword">this</span>.second = second;
+    }
+}
 </code></pre>
+<p>泛型方法的定义</p>
+<pre><code class="lang-java"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ArrayAlg</span>
+</span>{
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> &lt;T&gt; <span class="hljs-function">T <span class="hljs-title">getMiddle</span><span class="hljs-params">(T[] arrays)</span> </span>{
+        <span class="hljs-keyword">return</span> arrays[arrays.length/<span class="hljs-number">2</span>];
+    }
+}
+</code></pre>
+<p><strong> 泛型代码与虚拟机 </strong></p>
+<ol>
+<li>虚拟机没有泛型类型对象--所有对象都属于普通类。</li>
+<li>无论何时定义一个泛型类型，都自动提供了一个相应的<strong>原始类型(raw type)</strong>。原始类型的名字就是删去类型参数后的泛型类型名。擦除类型变量，并替换为限定类型(无线定的变量用object)。</li>
+<li><p>例如上例中的Pair<T>的原始类型如下：</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Pair</span> </span>{
+ <span class="hljs-keyword">private</span> Object firsObject;
+ <span class="hljs-keyword">private</span> Object second;
+
+ <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Pair</span><span class="hljs-params">()</span> </span>{
+     firsObject = second = <span class="hljs-keyword">null</span>;
+ }
+
+ <span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">geObjectFirsObject</span><span class="hljs-params">()</span> </span>{
+     reObjecturn firsObject;
+ }
+
+ <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">seObjectFirsObject</span><span class="hljs-params">(Object firsObject)</span> </span>{
+     Objecthis.firsObject = firsObject;
+ }
+
+ <span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">geObjectSecond</span><span class="hljs-params">()</span> </span>{
+     reObjecturn second;
+ }
+
+ <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">seObjectSecond</span><span class="hljs-params">(Object second)</span> </span>{
+     Objecthis.second = second;
+ }
+}
+</code></pre>
+</li>
+<li><strong>T是一个无限定的变量，所以直接用Object替换。就这点而言，java泛型与C++模版有很大的区别。C++中每个模版的实例化产生不同的类型，这一现象称为&quot;模版代码膨胀&quot;。Java不存在这个问题的困扰。</strong></li>
+<li><p>原始类型用第一个限定的类型变量来替换，如果没有给定限定就用Object替换。例如，类Pair<T>中的类型变量没有显式的限定，因此，原始类型用Object替换T。</p>
+<pre><code class="lang-java"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Interval</span>&lt;<span class="hljs-title">T</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Comparable</span> &amp; <span class="hljs-title">Serializable</span>&gt; <span class="hljs-keyword">implements</span> <span class="hljs-title">Serializable</span>
+</span>{
+ <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> serialVersionUID = <span class="hljs-number">7679772108855820645</span>L;
+
+ <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Interval</span><span class="hljs-params">(T first, T second)</span>
+ </span>{
+     <span class="hljs-keyword">if</span> (first.compareTo(second) &lt;= <span class="hljs-number">0</span>) {
+         lower = first;
+         upper = second;
+     } <span class="hljs-keyword">else</span> {
+         upper = first;
+         lower = second;
+     }
+ }
+ <span class="hljs-keyword">private</span> T lower;
+ <span class="hljs-keyword">private</span> T upper;
+}
+</code></pre>
+</li>
+<li><p>其对应的原始类型为：</p>
+<pre><code class="lang-java"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Interval</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Serializable</span>
+</span>{
+ <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Interval</span><span class="hljs-params">(Comparable first, Comparable second)</span>
+ ....
+ <span class="hljs-keyword">private</span> Comparable lower</span>;
+ <span class="hljs-keyword">private</span> Comparable upper;
+}
+</code></pre>
+<p><strong> 约束与局限性 </strong></p>
+</li>
+<li><p>不能用基本类型实例化类型参数.没有Pair<double>，原因是类型擦除，擦除之后，Pair类含有Object类型的域，而Object不能存储double值。</p>
+</li>
+<li>运行时类型查询只适用于原始类型。虚拟机中的对象总有一个特定的非泛型类型。因此，所有的类型查询只产生原始类型。因此，getClass总是返回原始类型，Pair<String> stringPair; Pair<Employee> employeePair; stringPair.getClass() == employeePair.getClass()总是成立。</li>
+<li>参数化类型的数组不合法</li>
+<li>不能实例化类型变量。不能使用像new T(..), new T[...]或T.class这样的表达式中的类型变量。可以使用下面的方法获取对象：
+```java
+public static<T> Pair<T> makePair(Class<T> clazz) {
+ try {<pre><code> return new Pair&lt;T&gt;(clazz.newInstance(), clazz.newInstance());
+</code></pre> } catch(Exception ) {<pre><code> // ....
+</code></pre> }
+}</li>
+<li>泛型类的静态上下文中类型变量无效。</li>
+</ol>
+<p><strong> 通配符类型 </strong></p>
+<ol>
+<li>Pair&lt;? extends Employee&gt;:表示任何泛型Pair类型，它的参数是Employee的子类。</li>
+<li>带有超类型的通配符可以向泛型对象写入，带有子类型限定的通配符可以从泛型对象读取。</li>
+<li>无限制通配类型Set&lt;?&gt;和原生态类型Set之间有什么区别呢？这个问号真正起到作用了吗？当然有作用，通配符是安全的，原生态类型则是不安全的。由于可以将任何元素放进使用原生态类型的集合中，因此很容易破坏该集合的类型约束条件；但<strong>不能将任何元素(除了null之外)放到Collection&lt;?&gt;中</strong>。</li>
+<li>使用原生态类型会在运行时导致异常，因此不要在新代码中使用。原生态类型只是为了引入泛型之前的遗留代码进行兼容和互用而提供的。</li>
+<li>Set<Object>是个参数化类型，表示可以包含任何对象类型的一个集合；Set&lt;?&gt;则是一个通配符类型，<strong>表示只能包含某种未知对象类型的一个集合</strong>；Set则是个原生态类型，它脱离了泛型系统。前两种是安全的，最后一种不安全。</li>
+</ol>
 
                     
                     </section>
@@ -901,10 +997,10 @@ make &amp;&amp; make install
         </div>
 
         
-        <a href="../../gitbook/install/README.html" class="navigation navigation-prev " aria-label="Previous page: 安装"><i class="fa fa-angle-left"></i></a>
+        <a href="../../java/class/innerclass.html" class="navigation navigation-prev " aria-label="Previous page: java内部类"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../../gitbook/install/gitbook.html" class="navigation navigation-next " aria-label="Next page: gitbook安装"><i class="fa fa-angle-right"></i></a>
+        <a href="../../java/multithread/README.html" class="navigation navigation-next " aria-label="Next page: java多线程"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>
