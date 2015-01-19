@@ -33,6 +33,7 @@
     - [小结](redis/end/README.md)
 * [java笔记](java/README.md) *
     - [java基础知识](java/generic/abc.md)
+        - [java枚举](java/generic/enum.md)
     - [java初始化](java/class/initialize.md)
     - [java内部类](java/class/innerclass.md)
     - [java泛型](java/generic/generic.md)
