@@ -4,7 +4,7 @@
     <head>
         
         <meta charset="UTF-8">
-        <title>rdb相关的处理 | 我的笔记</title>
+        <title>tcp/ip | 我的笔记</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.3.3">
@@ -17,10 +17,10 @@
         
     
     
-    <link rel="next" href="../../redis/presistence/aof.html" />
+    <link rel="next" href="../../network/tcp/mss.html" />
     
     
-    <link rel="prev" href="../../redis/presistence/README.html" />
+    <link rel="prev" href="../../network/README.html" />
     
 
         
@@ -32,7 +32,7 @@
 
 
         
-    <div class="book" data-level="3.2.1" data-basepath="../.." data-revision="1421633354995">
+    <div class="book" data-level="5.1" data-basepath="../.." data-revision="1421633354995">
     
 
 <div class="book-summary">
@@ -384,7 +384,7 @@
                 
     
         
-        <li class="chapter active" data-level="3.2.1" data-path="redis/presistence/rdb.html">
+        <li class="chapter " data-level="3.2.1" data-path="redis/presistence/rdb.html">
             
                 
                     <a href="../../redis/presistence/rdb.html">
@@ -815,7 +815,7 @@
                 
     
         
-        <li class="chapter " data-level="5.1" data-path="network/tcp/README.html">
+        <li class="chapter active" data-level="5.1" data-path="network/tcp/README.html">
             
                 
                     <a href="../../network/tcp/README.html">
@@ -1010,99 +1010,16 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_39">
-                    
-                        <h1 id="rdb">rdb持久化</h1>
-<p><strong><strong>rdb相关的配置</strong></strong></p>
-<pre><code class="lang-bash">save none
-save <span class="hljs-number">900</span> <span class="hljs-number">1</span>
-save <span class="hljs-number">300</span> <span class="hljs-number">10</span>
-save <span class="hljs-number">60</span>  <span class="hljs-number">1000</span>
-</code></pre>
-<p>save none表示不生成rdb，save m n表示在m秒内有n次以上改变则会进行rdb</p>
-<p><strong>redisServer中与rdb相关的项</strong></p>
-<pre><code class="lang-c"><span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> dirty;                <span class="hljs-comment">/* Changes to DB from the last save */</span>
-<span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> dirty_before_bgsave;  <span class="hljs-comment">/* Used to restore dirty on failed BGSAVE */</span>
-pid_t rdb_child_pid;            <span class="hljs-comment">/* PID of RDB saving child */</span>
-<span class="hljs-keyword">struct</span> saveparam *saveparams;   <span class="hljs-comment">/* Save points array for RDB,即保存上面rdb相关的配置 */</span>
-<span class="hljs-keyword">int</span> saveparamslen;              <span class="hljs-comment">/* Number of saving points */</span>
-<span class="hljs-keyword">char</span> *rdb_filename;             <span class="hljs-comment">/* Name of RDB file */</span>
-<span class="hljs-keyword">int</span> rdb_compression;            <span class="hljs-comment">/* Use compression in RDB? */</span>
-<span class="hljs-keyword">int</span> rdb_checksum;               <span class="hljs-comment">/* Use RDB checksum? */</span>
-time_t lastsave;                <span class="hljs-comment">/* Unix time of last save succeeede */</span>
-time_t rdb_save_time_last;      <span class="hljs-comment">/* Time used by last RDB save run. */</span>
-time_t rdb_save_time_start;     <span class="hljs-comment">/* Current RDB save start time. */</span>
-<span class="hljs-keyword">int</span> lastbgsave_status;          <span class="hljs-comment">/* REDIS_OK or REDIS_ERR */</span>
-<span class="hljs-keyword">int</span> stop_writes_on_bgsave_err;  <span class="hljs-comment">/* Don't allow writes if can't BGSAVE */</span>
-</code></pre>
-<p><strong>rdb触发条件</strong></p>
-<ul>
-<li>save</li>
-<li>bgsave</li>
-<li>serverCron</li>
-</ul>
-<p>rdb相关的处理都在rdb.h和rdb.c中</p>
-<p><strong>save处理</strong></p>
-<p>客户端输入save指令后，服务端会调用saveCommand进行相应的处理，如果后台保存工作正在进行，则直接返回，否则回调用rdbSave作相应的处理，此时会<em>阻塞进程</em></p>
-<pre><code class="lang-c"><span class="hljs-keyword">void</span> saveCommand(redisClient *c) {
-    <span class="hljs-comment">// 如果后台正在保存rdb文件，则当前保存回失败</span>
-    <span class="hljs-keyword">if</span> (server.rdb_child_pid != -<span class="hljs-number">1</span>) {
-        addReplyError(c,<span class="hljs-string">"Background save already in progress"</span>);
-        <span class="hljs-keyword">return</span>;
-    }
-
-    <span class="hljs-comment">// 保存所有数据库数据到指定的文件</span>
-    <span class="hljs-keyword">if</span> (rdbSave(server.rdb_filename) == REDIS_OK) {
-        addReply(c,shared.ok);
-    } <span class="hljs-keyword">else</span> {
-        addReply(c,shared.err);
-    }
-}
-</code></pre>
-<p><strong>bgsave处理</strong></p>
-<p>客户端输入bgsave指令后，服务端会调用bgsaveCommand进行处理，如果后台保存工作正在进行，则直接返回，否在调用rdbSaveBackground作相应处理，此时rdbSaveBackground会启动一个专门的进程来进行后台保存工作.</p>
-<pre><code class="lang-c"><span class="hljs-keyword">void</span> bgsaveCommand(redisClient *c) {
-    <span class="hljs-comment">// 如果后台正在重写rdb，或者重写aof，则此次重写rdb会失败</span>
-    <span class="hljs-keyword">if</span> (server.rdb_child_pid != -<span class="hljs-number">1</span>) {
-        addReplyError(c,<span class="hljs-string">"Background save already in progress"</span>);
-    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (server.aof_child_pid != -<span class="hljs-number">1</span>) {
-        addReplyError(c,<span class="hljs-string">"Can't BGSAVE while AOF log rewriting is in progress"</span>);
-        <span class="hljs-comment">// 开始后台写入</span>
-    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (rdbSaveBackground(server.rdb_filename) == REDIS_OK) {
-        addReplyStatus(c,<span class="hljs-string">"Background saving started"</span>);
-    } <span class="hljs-keyword">else</span> {
-        addReply(c,shared.err);
-    }
-}
-</code></pre>
-<p><strong>serverCron处理</strong></p>
-<p>serverCron里面执行的是redis的定时任务，每隔一定的周期都会执行一次，此函数里面与rdb相关的操作如下</p>
-<pre><code class="lang-c"><span class="hljs-keyword">for</span> (j = <span class="hljs-number">0</span>; j &lt; server.saveparamslen; j++) {
-    <span class="hljs-keyword">struct</span> saveparam *sp = server.saveparams+j;
-
-    <span class="hljs-keyword">if</span> (server.dirty &gt;= sp-&gt;changes &amp;&amp;
-        server.unixtime-server.lastsave &gt; sp-&gt;seconds) {
-        redisLog(REDIS_NOTICE,<span class="hljs-string">"%d changes in %d seconds. Saving..."</span>,
-            sp-&gt;changes, sp-&gt;seconds);
-        rdbSaveBackground(server.rdb_filename);
-        <span class="hljs-keyword">break</span>;
-    }
-}
-</code></pre>
-
-                    
-                    </section>
-                
                 
                 </div>
             </div>
         </div>
 
         
-        <a href="../../redis/presistence/README.html" class="navigation navigation-prev " aria-label="Previous page: rdb &amp; aof"><i class="fa fa-angle-left"></i></a>
+        <a href="../../network/README.html" class="navigation navigation-prev " aria-label="Previous page: 网络"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../../redis/presistence/aof.html" class="navigation navigation-next " aria-label="Next page: aof相关处理"><i class="fa fa-angle-right"></i></a>
+        <a href="../../network/tcp/mss.html" class="navigation navigation-next " aria-label="Next page: mss"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>

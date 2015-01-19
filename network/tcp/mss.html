@@ -4,7 +4,7 @@
     <head>
         
         <meta charset="UTF-8">
-        <title>rdb相关的处理 | 我的笔记</title>
+        <title>mss | 我的笔记</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.3.3">
@@ -17,10 +17,10 @@
         
     
     
-    <link rel="next" href="../../redis/presistence/aof.html" />
+    <link rel="next" href="../../network/tcp/algorithm.html" />
     
     
-    <link rel="prev" href="../../redis/presistence/README.html" />
+    <link rel="prev" href="../../network/tcp/README.html" />
     
 
         
@@ -32,7 +32,7 @@
 
 
         
-    <div class="book" data-level="3.2.1" data-basepath="../.." data-revision="1421633354995">
+    <div class="book" data-level="5.1.1" data-basepath="../.." data-revision="1421633354995">
     
 
 <div class="book-summary">
@@ -384,7 +384,7 @@
                 
     
         
-        <li class="chapter active" data-level="3.2.1" data-path="redis/presistence/rdb.html">
+        <li class="chapter " data-level="3.2.1" data-path="redis/presistence/rdb.html">
             
                 
                     <a href="../../redis/presistence/rdb.html">
@@ -832,7 +832,7 @@
                 
     
         
-        <li class="chapter " data-level="5.1.1" data-path="network/tcp/mss.html">
+        <li class="chapter active" data-level="5.1.1" data-path="network/tcp/mss.html">
             
                 
                     <a href="../../network/tcp/mss.html">
@@ -1010,85 +1010,26 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_39">
+                    <section class="normal" id="section-gitbook_24">
                     
-                        <h1 id="rdb">rdb持久化</h1>
-<p><strong><strong>rdb相关的配置</strong></strong></p>
-<pre><code class="lang-bash">save none
-save <span class="hljs-number">900</span> <span class="hljs-number">1</span>
-save <span class="hljs-number">300</span> <span class="hljs-number">10</span>
-save <span class="hljs-number">60</span>  <span class="hljs-number">1000</span>
-</code></pre>
-<p>save none表示不生成rdb，save m n表示在m秒内有n次以上改变则会进行rdb</p>
-<p><strong>redisServer中与rdb相关的项</strong></p>
-<pre><code class="lang-c"><span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> dirty;                <span class="hljs-comment">/* Changes to DB from the last save */</span>
-<span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> dirty_before_bgsave;  <span class="hljs-comment">/* Used to restore dirty on failed BGSAVE */</span>
-pid_t rdb_child_pid;            <span class="hljs-comment">/* PID of RDB saving child */</span>
-<span class="hljs-keyword">struct</span> saveparam *saveparams;   <span class="hljs-comment">/* Save points array for RDB,即保存上面rdb相关的配置 */</span>
-<span class="hljs-keyword">int</span> saveparamslen;              <span class="hljs-comment">/* Number of saving points */</span>
-<span class="hljs-keyword">char</span> *rdb_filename;             <span class="hljs-comment">/* Name of RDB file */</span>
-<span class="hljs-keyword">int</span> rdb_compression;            <span class="hljs-comment">/* Use compression in RDB? */</span>
-<span class="hljs-keyword">int</span> rdb_checksum;               <span class="hljs-comment">/* Use RDB checksum? */</span>
-time_t lastsave;                <span class="hljs-comment">/* Unix time of last save succeeede */</span>
-time_t rdb_save_time_last;      <span class="hljs-comment">/* Time used by last RDB save run. */</span>
-time_t rdb_save_time_start;     <span class="hljs-comment">/* Current RDB save start time. */</span>
-<span class="hljs-keyword">int</span> lastbgsave_status;          <span class="hljs-comment">/* REDIS_OK or REDIS_ERR */</span>
-<span class="hljs-keyword">int</span> stop_writes_on_bgsave_err;  <span class="hljs-comment">/* Don't allow writes if can't BGSAVE */</span>
-</code></pre>
-<p><strong>rdb触发条件</strong></p>
-<ul>
-<li>save</li>
-<li>bgsave</li>
-<li>serverCron</li>
-</ul>
-<p>rdb相关的处理都在rdb.h和rdb.c中</p>
-<p><strong>save处理</strong></p>
-<p>客户端输入save指令后，服务端会调用saveCommand进行相应的处理，如果后台保存工作正在进行，则直接返回，否则回调用rdbSave作相应的处理，此时会<em>阻塞进程</em></p>
-<pre><code class="lang-c"><span class="hljs-keyword">void</span> saveCommand(redisClient *c) {
-    <span class="hljs-comment">// 如果后台正在保存rdb文件，则当前保存回失败</span>
-    <span class="hljs-keyword">if</span> (server.rdb_child_pid != -<span class="hljs-number">1</span>) {
-        addReplyError(c,<span class="hljs-string">"Background save already in progress"</span>);
-        <span class="hljs-keyword">return</span>;
-    }
+                        <h1 id="mtumss">MTU和MSS</h1>
+<h2 id="mtu">MTU</h2>
+<p>MTU指能在网络上传输的最大数据包大小,是数据链路层的一个概念。</p>
+<p>TCP层是第4层传输层，第3层IP网络层、第2层数据链路层具备的约束条件同样对TCP层生效。</p>
+<p>无论何种类型的数据链路层，都会对网络分组的长度有一个限制。例如以太网限制为1500字节，802.3限制为1492字节。当内核的IP网络层试图发送报文时，若一个报文的长度大于MTU限制，就会被分成若干个小于MTU的报文，每个报文都会有独立的IP头部。</p>
+<h2 id="ip">IP报头</h2>
+<p>ip报头的数据格式：</p>
+<center><img src="../../imgs/package.png" alt=""></center>
+<center>ip数据报格式</center>
 
-    <span class="hljs-comment">// 保存所有数据库数据到指定的文件</span>
-    <span class="hljs-keyword">if</span> (rdbSave(server.rdb_filename) == REDIS_OK) {
-        addReply(c,shared.ok);
-    } <span class="hljs-keyword">else</span> {
-        addReply(c,shared.err);
-    }
-}
-</code></pre>
-<p><strong>bgsave处理</strong></p>
-<p>客户端输入bgsave指令后，服务端会调用bgsaveCommand进行处理，如果后台保存工作正在进行，则直接返回，否在调用rdbSaveBackground作相应处理，此时rdbSaveBackground会启动一个专门的进程来进行后台保存工作.</p>
-<pre><code class="lang-c"><span class="hljs-keyword">void</span> bgsaveCommand(redisClient *c) {
-    <span class="hljs-comment">// 如果后台正在重写rdb，或者重写aof，则此次重写rdb会失败</span>
-    <span class="hljs-keyword">if</span> (server.rdb_child_pid != -<span class="hljs-number">1</span>) {
-        addReplyError(c,<span class="hljs-string">"Background save already in progress"</span>);
-    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (server.aof_child_pid != -<span class="hljs-number">1</span>) {
-        addReplyError(c,<span class="hljs-string">"Can't BGSAVE while AOF log rewriting is in progress"</span>);
-        <span class="hljs-comment">// 开始后台写入</span>
-    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (rdbSaveBackground(server.rdb_filename) == REDIS_OK) {
-        addReplyStatus(c,<span class="hljs-string">"Background saving started"</span>);
-    } <span class="hljs-keyword">else</span> {
-        addReply(c,shared.err);
-    }
-}
-</code></pre>
-<p><strong>serverCron处理</strong></p>
-<p>serverCron里面执行的是redis的定时任务，每隔一定的周期都会执行一次，此函数里面与rdb相关的操作如下</p>
-<pre><code class="lang-c"><span class="hljs-keyword">for</span> (j = <span class="hljs-number">0</span>; j &lt; server.saveparamslen; j++) {
-    <span class="hljs-keyword">struct</span> saveparam *sp = server.saveparams+j;
-
-    <span class="hljs-keyword">if</span> (server.dirty &gt;= sp-&gt;changes &amp;&amp;
-        server.unixtime-server.lastsave &gt; sp-&gt;seconds) {
-        redisLog(REDIS_NOTICE,<span class="hljs-string">"%d changes in %d seconds. Saving..."</span>,
-            sp-&gt;changes, sp-&gt;seconds);
-        rdbSaveBackground(server.rdb_filename);
-        <span class="hljs-keyword">break</span>;
-    }
-}
-</code></pre>
+<p>从上图可以看到，其指定IP包总长度的是一个16位的字段，这意味一个IP包最大可以是65535个字节。若TCP层在以太网中试图发送一个大于1500字节的消息，调用网络层方法发送消息时，IP层会自动的获取所在局域网的MTU值，并按照所在网络的MTU大小来分片。IP层同时希望这个分片对于传输层来说是透明的，接收方的IP层会根据收到的多个IP包头部，将发送方IP层分片出的IP包重组为一个消息。</p>
+<p><em>这种IP层的分片效率是很差的，因为必须所有分片都到达才能重组成一个包，其中任何一个分片丢失了，都必须重发所有分片。所以，TCP层会试图避免IP层执行数据分片。</em></p>
+<h2 id="mss">MSS</h2>
+<p>为了避免IP层的分片，TCP协议定义了一个新的概念：最大报文段长度MSS。<em>它定义了一个TCP连接上，一个主机期望对端主机发送单个报文的最大长度。</em>TCP3次握手建立连接时，连接双方都要相互告知对方自己期望接收到的MSS大小。</p>
+<p><em>这个MSS值会改变吗?</em></p>
+<p>会的。MSS就是为了避免IP层分片，在建立握手时告知对方自己期望接收的MSS值并不一定靠得住。因为这个值是预估的，TCP连接上的两台主机若处于不同的网络中，那么，连接上可能有许多个中间网络，这些网络分别具有不同的数据链路层，这样，TCP连接上有许多个MTU。若中间途径的MTU小于两台主机所在的网络的MTU时，选定的MSS仍然太大了，会导致中间路由器出现IP层的分片。</p>
+<p><em>怎样避免中间网络可能出现的分片</em></p>
+<p>通过IP头部的DF标志位，这个标志位是告诉IP报文所途经的所有IP层代码：不要对这个报文分片。如果一个IP报文太大必须要分片，则直接返回一个ICMP错误，说明必须要分片了，且带分片路由器网络接受的MTU值。这样，连接上的发送方主机就可以重新确定MSS。</p>
 
                     
                     </section>
@@ -1099,10 +1040,10 @@ time_t rdb_save_time_start;     <span class="hljs-comment">/* Current RDB save s
         </div>
 
         
-        <a href="../../redis/presistence/README.html" class="navigation navigation-prev " aria-label="Previous page: rdb &amp; aof"><i class="fa fa-angle-left"></i></a>
+        <a href="../../network/tcp/README.html" class="navigation navigation-prev " aria-label="Previous page: tcp/ip"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../../redis/presistence/aof.html" class="navigation navigation-next " aria-label="Next page: aof相关处理"><i class="fa fa-angle-right"></i></a>
+        <a href="../../network/tcp/algorithm.html" class="navigation navigation-next " aria-label="Next page: tcp常用算法"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>
