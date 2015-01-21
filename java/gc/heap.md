@@ -19,5 +19,3 @@ jvm heap
 2. JVM进程与普通内存模型比较如下图：
     ![模型比较](../../imgs/memory_modle_compare.jpg)
 
-**Java堆内存**
-
