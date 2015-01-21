@@ -10,12 +10,12 @@ import java.lang.System;
  *  -XX:MaxPermSize=30m
  *  -XX:+PrintGCDetails
  **/
-public class Test {
+public class GcArgument {
     public static void main(String[] args) {
-        new Test().doTest();
+        new GcArgument().doGcArgument();
     }
 
-    public void doTest(){
+    public void doGcArgument(){
         Integer M = new Integer(1024 * 1024 * 1);  //单位, 兆(M)
         byte[] bytes = new byte[1 * M]; //申请 1M 大小的内存空间
         bytes = null;  //断开引用链
