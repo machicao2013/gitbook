@@ -4,7 +4,7 @@
     <head>
         
         <meta charset="UTF-8">
-        <title>内核参数 | 我的笔记</title>
+        <title>java 内核参数 | 我的笔记</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.3.3">
@@ -17,10 +17,10 @@
         
     
     
-    <link rel="next" href="../../network/tools/tools.html" />
+    <link rel="next" href="../../network/README.html" />
     
     
-    <link rel="prev" href="../../network/tcp/api.html" />
+    <link rel="prev" href="../../java/gc/tools.html" />
     
 
         
@@ -32,7 +32,7 @@
 
 
         
-    <div class="book" data-level="5.1.4" data-basepath="../.." data-revision="1421806454356">
+    <div class="book" data-level="4.6.4" data-basepath="../.." data-revision="1421806454356">
     
 
 <div class="book-summary">
@@ -858,7 +858,7 @@
         </li>
     
         
-        <li class="chapter " data-level="4.6.4" data-path="java/gc/argument.html">
+        <li class="chapter active" data-level="4.6.4" data-path="java/gc/argument.html">
             
                 
                     <a href="../../java/gc/argument.html">
@@ -966,7 +966,7 @@
         </li>
     
         
-        <li class="chapter active" data-level="5.1.4" data-path="network/tcp/kernel_argument.html">
+        <li class="chapter " data-level="5.1.4" data-path="network/tcp/kernel_argument.html">
             
                 
                     <a href="../../network/tcp/kernel_argument.html">
@@ -1096,20 +1096,62 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_27">
+                    <section class="normal" id="section-gitbook_6">
                     
-                        <h1 id="tcpip">TCP/IP相关的内核参数</h1>
-<h2 id="">应用程序设置</h2>
+                        <h1 id="java">java调优参数</h1>
 <ol>
-<li>TCP_NODELAY: 关闭Nagle算法</li>
-<li>SO_RCVTIMEO: </li>
-<li>SO_RCVLOWAT:</li>
-<li>SO_SNDTIMEO:</li>
-</ol>
-<h2 id="">内核的设置</h2>
-<ol>
-<li>/proc/sys/net/core/wmem_default: </li>
-<li>/proc/sys/net/ipv4/tcp_low_latency:</li>
+<li><p>常见的和java内参调优相关的参数</p>
+<p>| argument                        | explain           |  example                        |
+| ------------------------------- |:-----------------:|:-------------------------------:|
+| -Xms                            |初始堆大小         | -Xms256m                        |
+| -Xmx                            |最大堆大小         | -Xmx512m                        |
+| -Xmn                            |新生代大小         | -Xmx128m                        |
+| -Xss                            |线程栈大小         | -Xss1m                          |
+| -XX:NewRatio                    |老年代/新生代      | -XX:NewRatio=2                  |
+| -XX:SurvivorRation              |Eden/Survivor      | -XX:SurvivorRation=8            |
+| -XX:PermSize                    |永久代初始大小     | -XX:PermSize=20m                |
+| -XX:MaxPermSize                 |永久代最大值       | -XX:MaxPermSize=50m             |
+| -XX:PrintGcDetails              |打印gc信息         | -XX:PrintGcDetails              |
+| -XX:+HeapDumpOnOutOfMemoryError |内存溢出时dump快照 | -XX:+HeapDumpOnOutOfMemoryError |
+| -XX:HeapDumpPath                |dump文件路径       | -XX:HeapDumpPath=/tmp/dump      |</p>
+</li>
+<li><p>一个例子</p>
+<pre><code class="lang-java"> <span class="hljs-keyword">import</span> java.lang.System;
+
+ <span class="hljs-javadoc">/**
+  *  -Xms60m
+  *  -Xmx60m
+  *  -Xmn20m
+  *  -XX:NewRatio=2 ( 若 Xms = Xmx, 并且设定了 Xmn, 那么该项配置就不需要配置了 )
+  *  -XX:SurvivorRatio=8
+  *  -XX:PermSize=30m
+  *  -XX:MaxPermSize=30m
+  *  -XX:+PrintGCDetails
+  **/</span>
+ <span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Test</span> </span>{
+     <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>{
+         <span class="hljs-keyword">new</span> Test().doTest();
+     }
+
+     <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doTest</span><span class="hljs-params">()</span></span>{
+         Integer M = <span class="hljs-keyword">new</span> Integer(<span class="hljs-number">1024</span> * <span class="hljs-number">1024</span> * <span class="hljs-number">1</span>);  <span class="hljs-comment">//单位, 兆(M)</span>
+         <span class="hljs-keyword">byte</span>[] bytes = <span class="hljs-keyword">new</span> <span class="hljs-keyword">byte</span>[<span class="hljs-number">1</span> * M]; <span class="hljs-comment">//申请 1M 大小的内存空间</span>
+         bytes = <span class="hljs-keyword">null</span>;  <span class="hljs-comment">//断开引用链</span>
+         System.gc();   <span class="hljs-comment">//通知 GC 收集垃圾</span>
+         System.out.println();
+         bytes = <span class="hljs-keyword">new</span> <span class="hljs-keyword">byte</span>[<span class="hljs-number">1</span> * M];  <span class="hljs-comment">//重新申请 1M 大小的内存空间</span>
+         bytes = <span class="hljs-keyword">new</span> <span class="hljs-keyword">byte</span>[<span class="hljs-number">1</span> * M];  <span class="hljs-comment">//再次申请 1M 大小的内存空间</span>
+         System.gc();
+         System.out.println();
+     }
+ }
+</code></pre>
+<pre><code class="lang-shell"> #!/bin/bash
+ javac Test.java
+ java -Xms60m -Xmx60m -Xmn20m -XX:NewRatio=2 -XX:SurvivorRatio=8 -XX:PermSize=30m -XX:MaxPermSize=30m -XX:+PrintGCDetails Test
+ rm Test.class
+</code></pre>
+</li>
 </ol>
 
                     
@@ -1121,10 +1163,10 @@
         </div>
 
         
-        <a href="../../network/tcp/api.html" class="navigation navigation-prev " aria-label="Previous page: socket api"><i class="fa fa-angle-left"></i></a>
+        <a href="../../java/gc/tools.html" class="navigation navigation-prev " aria-label="Previous page: java 内存调优工具"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../../network/tools/tools.html" class="navigation navigation-next " aria-label="Next page: 工具"><i class="fa fa-angle-right"></i></a>
+        <a href="../../network/README.html" class="navigation navigation-next " aria-label="Next page: 网络"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>
