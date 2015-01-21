@@ -1,0 +1,41 @@
+
+
+[GC [PSYoungGen: 1351K->288K(18432K)] 1351K->288K(59392K), 0.0068430 secs] [Times: user=0.01 sys=0.00, real=0.01 secs]
+
+
+[Full GC [PSYoungGen: 288K->0K(18432K)]
+[ParOldGen: 0K->222K(40960K)] 288K->222K(59392K) [PSPermGen: 2363K->2362K(30720K)], 0.0312730 secs] [Times: user=0.05 sys=0.00, real=0.03 secs]
+
+
+[GC [PSYoungGen: 3031K->1056K(18432K)] 3253K->1278K(59392K), 0.0183440 secs] [Times: user=0.06 sys=0.00, real=0.02 secs]
+[Full GC [PSYoungGen: 1056K->0K(18432K)]
+[ParOldGen: 222K->1246K(40960K)] 1278K->1246K(59392K) [PSPermGen: 2365K->2365K(30720K)], 0.0165780 secs] [Times: user=0.03 sys=0.01, real=0.02 secs]
+
+Heap
+ PSYoungGen      total 18432K, used 164K [0x00000000fec00000, 0x0000000100000000, 0x0000000100000000)
+  eden space 16384K, 1% used [0x00000000fec00000,0x00000000fec29010,0x00000000ffc00000)
+  from space 2048K, 0% used [0x00000000ffe00000,0x00000000ffe00000,0x0000000100000000)
+  to   space 2048K, 0% used [0x00000000ffc00000,0x00000000ffc00000,0x00000000ffe00000)
+ ParOldGen       total 40960K, used 1246K [0x00000000fc400000, 0x00000000fec00000, 0x00000000fec00000)
+  object space 40960K, 3% used [0x00000000fc400000,0x00000000fc537b08,0x00000000fec00000)
+ PSPermGen       total 30720K, used 2372K [0x00000000fa600000, 0x00000000fc400000, 0x00000000fc400000)
+  object space 30720K, 7% used [0x00000000fa600000,0x00000000fa851130,0x00000000fc400000)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
