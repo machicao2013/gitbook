@@ -32,7 +32,7 @@
 
 
         
-    <div class="book" data-level="4.6.4" data-basepath="../.." data-revision="1421806454356">
+    <div class="book" data-level="4.6.4" data-basepath="../.." data-revision="1421807313220">
     
 
 <div class="book-summary">
@@ -1101,19 +1101,70 @@
                         <h1 id="java">java调优参数</h1>
 <ol>
 <li><p>常见的和java内参调优相关的参数</p>
-<p>| argument                        | explain           |  example                        |
-| ------------------------------- |:-----------------:|:-------------------------------:|
-| -Xms                            |初始堆大小         | -Xms256m                        |
-| -Xmx                            |最大堆大小         | -Xmx512m                        |
-| -Xmn                            |新生代大小         | -Xmx128m                        |
-| -Xss                            |线程栈大小         | -Xss1m                          |
-| -XX:NewRatio                    |老年代/新生代      | -XX:NewRatio=2                  |
-| -XX:SurvivorRation              |Eden/Survivor      | -XX:SurvivorRation=8            |
-| -XX:PermSize                    |永久代初始大小     | -XX:PermSize=20m                |
-| -XX:MaxPermSize                 |永久代最大值       | -XX:MaxPermSize=50m             |
-| -XX:PrintGcDetails              |打印gc信息         | -XX:PrintGcDetails              |
-| -XX:+HeapDumpOnOutOfMemoryError |内存溢出时dump快照 | -XX:+HeapDumpOnOutOfMemoryError |
-| -XX:HeapDumpPath                |dump文件路径       | -XX:HeapDumpPath=/tmp/dump      |</p>
+ <table>
+     <tbody>
+         <tr>
+             <td>argument</td>
+             <td>explain</td>
+             <td>example</td>
+         </tr>
+         <tr>
+             <td>-Xms</td>
+             <td>初始堆大小</td>
+             <td>-Xms256m</td>
+         </tr>
+         <tr>
+             <td>-Xmx</td>
+             <td>最大堆大小</td>
+             <td>-Xmx512m</td>
+         </tr>
+         <tr>
+             <td>-Xmn</td>
+             <td>新生代大小</td>
+             <td>-Xmx128m</td>
+         </tr>
+         <tr>
+             <td>-Xss</td>
+             <td>线程栈大小</td>
+             <td>-Xss1m</td>
+         </tr>
+         <tr>
+             <td>-XX:NewRatio</td>
+             <td>老年代/新生代</td>
+             <td>-XX:NewRatio=2</td>
+         </tr>
+         <tr>
+             <td>-XX:SurvivorRation</td>
+             <td>Eden/Survivor</td>
+             <td>-XX:SurvivorRation=8</td>
+         </tr>
+         <tr>
+             <td>-XX:PermSize</td>
+             <td>永久代初始大小</td>
+             <td>-XX:PermSize=20m</td>
+         </tr>
+         <tr>
+             <td>-XX:MaxPermSize</td>
+             <td>永久代最大值</td>
+             <td>-XX:MaxPermSize=50m</td>
+         </tr>
+         <tr>
+             <td>-XX:PrintGcDetails</td>
+             <td>打印gc信息</td>
+             <td>-XX:PrintGcDetails</td>
+         </tr>
+         <tr>
+             <td>-XX:+HeapDumpOnOutOfMemoryError</td>
+             <td>内存溢出时dump快照</td>
+             <td>-XX:+HeapDumpOnOutOfMemoryError</td>
+         </tr>
+         <tr>
+             <td>-XX:HeapDumpPath</td>
+             <td>dump文件路径</td>
+             <td>-XX:HeapDumpPath=/tmp/dump</td>
+         </tr>
+     </tbody>
+ </table>
 </li>
 <li><p>一个例子</p>
 <pre><code class="lang-java"> <span class="hljs-keyword">import</span> java.lang.System;
