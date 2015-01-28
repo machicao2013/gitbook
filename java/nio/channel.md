@@ -49,4 +49,14 @@ Channel Introduction
 6. 所有的MappedByteBuffer对象都是直接的，这意味着它们占用的内存空间位于Java虚拟机内存堆之外（并且可能不会算作Java虚拟机的内存占用，不过这取决于操作系统的虚拟内存模型）。
 7. 当我们为一个文件建立虚拟内存映射之后，文件数据通常不会因此被从磁盘读取到内存（这取决于操作系统）。
 8. 对于映射缓冲区，虚拟内存系统将根据您的需要来把文件中相应区块的数据读进来。这个页验证或防错过程需要一定的时间，因为将文件数据读取到内存需要一次或多次的磁盘访问。某些场景下，您可能想先把所有的页都读进内存以实现最小的缓冲区访问延迟。如果文件的所有页都是常驻内存的，那么它的访问速度就和访问一个基于内存的缓冲区一样了。
+9. MapMode.PRIVATE表示您想要一个写时拷贝（copy-on-write）的映射。这意味着您通过put( )方法所做的任何修改都会导致产生一个私有的数据拷贝并且该拷贝中的数据只有MappedByteBuffer实例可以看到。该过程不会对底层文件做任何修改，而且一旦缓冲区被施以垃圾收集动作（garbage collected），那些修改都会丢失。尽管写时拷贝的映射可以防止底层文件被修改，您也必须以read/write权限来打开文件以建立MapMode.PRIVATE映射。只有这样，返回的MappedByteBuffer对象才能允许使用put( )方法。
+10. 如果映射是以MapMode.READ_ONLY或MAP_MODE.PRIVATE模式建立的，那么调用force( )方法将不起任何作用，因为永远不会有更改需要应用到磁盘上（但是这样做也是没有害处的）。
 
+** Socket通道 **
+
+1. socket通道类可以运行非阻塞模式并且是可选择的.
+2. 请注意DatagramChannel和SocketChannel实现定义读和写功能的接口而ServerSocketChannel不实现。ServerSocketChannel负责监听传入的连接和创建新的SocketChannel对象，它本身从不传输数据。
+3. 全部socket通道类（DatagramChannel、SocketChannel和ServerSocketChannel）在被实例化时都会创建一个对等socket对象。这些是我们所熟悉的来自java.net的类（Socket、ServerSocket和DatagramSocket），它们已经被更新以识别通道。对等socket可以通过调用socket( )方法从一个通道上获取。此外，这三个java.net类现在都有getChannel( )方法。
+4. 虽然每个socket通道（在java.nio.channels包中）都有一个关联的java.net socket对象，却并非所有的socket都有一个关联的通道。如果您用传统方式（直接实例化）创建了一个Socket对象，它就不会有关联的SocketChannel并且它的getChannel( )方法将总是返回null。
+5. 如果您选择在ServerSocket上调用accept( )方法，那么它会同任何其他的ServerSocket表现一样的行为：总是阻塞并返回一个java.net.Socket对象。如果您选择在ServerSocketChannel上调用accept( )方法则会返回SocketChannel类型的对象，返回的对象能够在非阻塞模式下运行
+6. 虽然每个SocketChannel对象都会创建一个对等的Socket对象，反过来却不成立。直接创建的Socket对象不会关联SocketChannel对象，它们的getChannel( )方法只返回null。
