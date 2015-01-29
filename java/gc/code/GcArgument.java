@@ -1,4 +1,5 @@
 import java.lang.System;
+import java.lang.Thread;
 
 /**
  *  -Xms60m
@@ -24,6 +25,11 @@ public class GcArgument {
         bytes = new byte[1 * M];  //重新申请 1M 大小的内存空间
         bytes = new byte[1 * M];  //再次申请 1M 大小的内存空间
         System.gc();
+        try {
+            Thread.sleep(30000);
+        } catch (InterruptedException e) {
+            System.out.println("============");
+        }
         System.out.println();
     }
 }
