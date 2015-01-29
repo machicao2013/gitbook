@@ -60,3 +60,7 @@ Channel Introduction
 4. 虽然每个socket通道（在java.nio.channels包中）都有一个关联的java.net socket对象，却并非所有的socket都有一个关联的通道。如果您用传统方式（直接实例化）创建了一个Socket对象，它就不会有关联的SocketChannel并且它的getChannel( )方法将总是返回null。
 5. 如果您选择在ServerSocket上调用accept( )方法，那么它会同任何其他的ServerSocket表现一样的行为：总是阻塞并返回一个java.net.Socket对象。如果您选择在ServerSocketChannel上调用accept( )方法则会返回SocketChannel类型的对象，返回的对象能够在非阻塞模式下运行
 6. 虽然每个SocketChannel对象都会创建一个对等的Socket对象，反过来却不成立。直接创建的Socket对象不会关联SocketChannel对象，它们的getChannel( )方法只返回null。
+
+** Pipe **
+
+1. 管道可以被用来仅在同一个Java虚拟机内部传输数据。
