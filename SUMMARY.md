@@ -58,4 +58,7 @@
     - [http](network/http/README.md)
         - [常用请求头](network/http/requestHeader.md)
         - [常用响应头](network/http/responseHeader.md)
-    - [工具](network/tools/tools.md)
+    - [工具](network/tools/README.md)
+        - [netstat](network/tools/netstat.md)
+        - [ss](network/tools/ss.md)
+        - [nc](network/tools/nc.md)
