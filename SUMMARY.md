@@ -31,6 +31,11 @@
         - [redis关闭旧aof文件时的处理](redis/others/closeAofFile.md)
         - [redis内存处理](redis/others/memory.md)
     - [小结](redis/end/README.md)
+* [leveldb](leveldb/README.md) *
+    - [leveldb的使用](leveldb/usage/README.md)
+        - [demo](leveldb/usage/demo.md)
+    - [leveldb的实现](leveldb/implementation/README.md)
+    - [leveldb源码分析](leveldb/sourcecode/README.md)
 * [java笔记](java/README.md) *
     - [java基础知识](java/generic/abc.md)
         - [java枚举](java/generic/enum.md)
@@ -62,3 +67,5 @@
         - [netstat](network/tools/netstat.md)
         - [ss](network/tools/ss.md)
         - [nc](network/tools/nc.md)
+* [other](other/README.md)
+    - [mysql](other/mysql/mysql.md)
