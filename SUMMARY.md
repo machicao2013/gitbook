@@ -33,9 +33,11 @@
     - [小结](redis/end/README.md)
 * [leveldb](leveldb/README.md) *
     - [leveldb的使用](leveldb/usage/README.md)
+        - [基本操作](leveldb/usage/usage.md)
         - [demo](leveldb/usage/demo.md)
     - [leveldb的实现](leveldb/implementation/README.md)
     - [leveldb源码分析](leveldb/sourcecode/README.md)
+        - [Arena的实现](leveldb/sourcecode/arena.md)
 * [java笔记](java/README.md) *
     - [java基础知识](java/generic/abc.md)
         - [java枚举](java/generic/enum.md)
