@@ -1,0 +1,1800 @@
+<!DOCTYPE HTML>
+<html lang="en-US" >
+    
+    <head>
+        
+        <meta charset="UTF-8">
+        <title>memtable的实现 | 我的笔记</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 1.3.3">
+        <meta name="HandheldFriendly" content="true"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../../gitbook/images/apple-touch-icon-precomposed-152.png">
+        <link rel="shortcut icon" href="../../gitbook/images/favicon.ico" type="image/x-icon">
+        
+    
+    
+    <link rel="next" href="../../leveldb/sourcecode/writer.html" />
+    
+    
+    <link rel="prev" href="../../leveldb/sourcecode/lru_cache.html" />
+    
+
+        
+    </head>
+    <body>
+        
+        
+<link rel="stylesheet" href="../../gitbook/style.css">
+
+
+        
+    <div class="book" data-level="4.3.4" data-basepath="../.." data-revision="1425869390723">
+    
+
+<div class="book-summary">
+    <div class="book-search">
+        <input type="text" placeholder="Type to search" class="form-control" />
+    </div>
+    <ul class="summary">
+        
+    	
+    	
+    	
+
+        
+
+        
+    
+        
+        <li class="chapter " data-level="0" data-path="index.html">
+            
+                
+                    <a href="../../index.html">
+                        <i class="fa fa-check"></i>
+                        
+                         Introduction
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1" data-path="gitbook/README.html">
+            
+                
+                    <a href="../../gitbook/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.</b>
+                        
+                         gitbook的使用
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="1.1" data-path="gitbook/install/README.html">
+            
+                
+                    <a href="../../gitbook/install/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.1.</b>
+                        
+                         安装
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="1.1.1" data-path="gitbook/install/nodejs.html">
+            
+                
+                    <a href="../../gitbook/install/nodejs.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.1.1.</b>
+                        
+                         nodejs安装
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1.1.2" data-path="gitbook/install/gitbook.html">
+            
+                
+                    <a href="../../gitbook/install/gitbook.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.1.2.</b>
+                        
+                         gitbook安装
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1.2" data-path="gitbook/usage/README.html">
+            
+                
+                    <a href="../../gitbook/usage/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.2.</b>
+                        
+                         使用
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="1.2.1" data-path="gitbook/usage/command.html">
+            
+                
+                    <a href="../../gitbook/usage/command.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.2.1.</b>
+                        
+                         gitbook命令
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1.2.2" data-path="gitbook/usage/architecture.html">
+            
+                
+                    <a href="../../gitbook/usage/architecture.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.2.2.</b>
+                        
+                         gitbook目录结构
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1.2.3" data-path="gitbook/usage/output.html">
+            
+                
+                    <a href="../../gitbook/usage/output.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.2.3.</b>
+                        
+                         gitbook输出
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1.3" data-path="gitbook/end/README.html">
+            
+                
+                    <a href="../../gitbook/end/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.3.</b>
+                        
+                         小结
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2" data-path="vim/README.html">
+            
+                
+                    <a href="../../vim/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.</b>
+                        
+                         vim插件
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="2.1" data-path="vim/install.html">
+            
+                
+                    <a href="../../vim/install.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.1.</b>
+                        
+                         安装
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2.2" data-path="vim/plugin.html">
+            
+                
+                    <a href="../../vim/plugin.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.2.</b>
+                        
+                         我使用的插件
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3" data-path="redis/README.html">
+            
+                
+                    <a href="../../redis/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.</b>
+                        
+                         redis
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="3.1" data-path="redis/aelibrary/README.html">
+            
+                
+                    <a href="../../redis/aelibrary/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.1.</b>
+                        
+                         redis事件库
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="3.1.1" data-path="redis/aelibrary/reactor.html">
+            
+                
+                    <a href="../../redis/aelibrary/reactor.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.1.1.</b>
+                        
+                         reactor
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.1.2" data-path="redis/aelibrary/flow.html">
+            
+                
+                    <a href="../../redis/aelibrary/flow.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.1.2.</b>
+                        
+                         ae库初始化流程
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.1.3" data-path="redis/aelibrary/eventprocess.html">
+            
+                
+                    <a href="../../redis/aelibrary/eventprocess.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.1.3.</b>
+                        
+                         ae库事件处理
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.2" data-path="redis/presistence/README.html">
+            
+                
+                    <a href="../../redis/presistence/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.2.</b>
+                        
+                         rdb &amp; aof
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="3.2.1" data-path="redis/presistence/rdb.html">
+            
+                
+                    <a href="../../redis/presistence/rdb.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.2.1.</b>
+                        
+                         rdb相关的处理
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.2.2" data-path="redis/presistence/aof.html">
+            
+                
+                    <a href="../../redis/presistence/aof.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.2.2.</b>
+                        
+                         aof相关处理
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.2.3" data-path="redis/presistence/advantagesAndDisadvantages.html">
+            
+                
+                    <a href="../../redis/presistence/advantagesAndDisadvantages.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.2.3.</b>
+                        
+                         rdb&amp;aof优缺点
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.3" data-path="redis/datastructure/README.html">
+            
+                
+                    <a href="../../redis/datastructure/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.3.</b>
+                        
+                         redis数据结构
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="3.3.1" data-path="redis/datastructure/dict.html">
+            
+                
+                    <a href="../../redis/datastructure/dict.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.3.1.</b>
+                        
+                         字典
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.4" data-path="redis/replication/README.html">
+            
+                
+                    <a href="../../redis/replication/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.4.</b>
+                        
+                         replication
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="3.4.1" data-path="redis/replication/configuration.html">
+            
+                
+                    <a href="../../redis/replication/configuration.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.4.1.</b>
+                        
+                         replication相关的配置
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.4.2" data-path="redis/replication/principle.html">
+            
+                
+                    <a href="../../redis/replication/principle.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.4.2.</b>
+                        
+                         replication的运作原理
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.4.3" data-path="redis/replication/PartialResynchronization.html">
+            
+                
+                    <a href="../../redis/replication/PartialResynchronization.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.4.3.</b>
+                        
+                         replication部分同步
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.5" data-path="redis/sentinel/README.html">
+            
+                
+                    <a href="../../redis/sentinel/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.5.</b>
+                        
+                         sentinel
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.6" data-path="redis/sharding/README.html">
+            
+                
+                    <a href="../../redis/sharding/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.6.</b>
+                        
+                         cluster &amp; sharding
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.7" data-path="redis/others/README.html">
+            
+                
+                    <a href="../../redis/others/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.7.</b>
+                        
+                         others
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="3.7.1" data-path="redis/others/closeAofFile.html">
+            
+                
+                    <a href="../../redis/others/closeAofFile.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.7.1.</b>
+                        
+                         redis关闭旧aof文件时的处理
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.7.2" data-path="redis/others/memory.html">
+            
+                
+                    <a href="../../redis/others/memory.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.7.2.</b>
+                        
+                         redis内存处理
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.8" data-path="redis/end/README.html">
+            
+                
+                    <a href="../../redis/end/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.8.</b>
+                        
+                         小结
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="4" data-path="leveldb/README.html">
+            
+                
+                    <a href="../../leveldb/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>4.</b>
+                        
+                         leveldb
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="4.1" data-path="leveldb/usage/README.html">
+            
+                
+                    <a href="../../leveldb/usage/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>4.1.</b>
+                        
+                         leveldb的使用
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="4.1.1" data-path="leveldb/usage/usage.html">
+            
+                
+                    <a href="../../leveldb/usage/usage.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>4.1.1.</b>
+                        
+                         基本操作
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="4.1.2" data-path="leveldb/usage/demo.html">
+            
+                
+                    <a href="../../leveldb/usage/demo.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>4.1.2.</b>
+                        
+                         demo
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="4.2" data-path="leveldb/implementation/README.html">
+            
+                
+                    <a href="../../leveldb/implementation/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>4.2.</b>
+                        
+                         leveldb的实现
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="4.3" data-path="leveldb/sourcecode/README.html">
+            
+                
+                    <a href="../../leveldb/sourcecode/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>4.3.</b>
+                        
+                         leveldb源码分析
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="4.3.1" data-path="leveldb/sourcecode/arena.html">
+            
+                
+                    <a href="../../leveldb/sourcecode/arena.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>4.3.1.</b>
+                        
+                         Arena的实现
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="4.3.2" data-path="leveldb/sourcecode/skiplist.html">
+            
+                
+                    <a href="../../leveldb/sourcecode/skiplist.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>4.3.2.</b>
+                        
+                         skiplist的实现
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="4.3.3" data-path="leveldb/sourcecode/lru_cache.html">
+            
+                
+                    <a href="../../leveldb/sourcecode/lru_cache.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>4.3.3.</b>
+                        
+                         LRUcache的实现
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter active" data-level="4.3.4" data-path="leveldb/sourcecode/memtable.html">
+            
+                
+                    <a href="../../leveldb/sourcecode/memtable.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>4.3.4.</b>
+                        
+                         memtable的实现
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="4.3.5" data-path="leveldb/sourcecode/writer.html">
+            
+                
+                    <a href="../../leveldb/sourcecode/writer.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>4.3.5.</b>
+                        
+                         Writer的实现
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="4.3.6" data-path="leveldb/sourcecode/reader.html">
+            
+                
+                    <a href="../../leveldb/sourcecode/reader.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>4.3.6.</b>
+                        
+                         Reader的实现
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="4.3.7" data-path="leveldb/sourcecode/sstable.html">
+            
+                
+                    <a href="../../leveldb/sourcecode/sstable.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>4.3.7.</b>
+                        
+                         sstable的实现
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="5" data-path="java/README.html">
+            
+                
+                    <a href="../../java/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>5.</b>
+                        
+                         java笔记
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="5.1" data-path="java/generic/abc.html">
+            
+                
+                    <a href="../../java/generic/abc.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>5.1.</b>
+                        
+                         java基础知识
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="5.1.1" data-path="java/generic/enum.html">
+            
+                
+                    <a href="../../java/generic/enum.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>5.1.1.</b>
+                        
+                         java枚举
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="5.2" data-path="java/class/initialize.html">
+            
+                
+                    <a href="../../java/class/initialize.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>5.2.</b>
+                        
+                         java初始化
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="5.3" data-path="java/class/innerclass.html">
+            
+                
+                    <a href="../../java/class/innerclass.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>5.3.</b>
+                        
+                         java内部类
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="5.4" data-path="java/generic/generic.html">
+            
+                
+                    <a href="../../java/generic/generic.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>5.4.</b>
+                        
+                         java泛型
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="5.5" data-path="java/multithread/README.html">
+            
+                
+                    <a href="../../java/multithread/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>5.5.</b>
+                        
+                         java多线程
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="5.5.1" data-path="java/multithread/abc.html">
+            
+                
+                    <a href="../../java/multithread/abc.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>5.5.1.</b>
+                        
+                         基本用法
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="5.6" data-path="java/nio/README.html">
+            
+                
+                    <a href="../../java/nio/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>5.6.</b>
+                        
+                         java nio
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="5.6.1" data-path="java/nio/buffer.html">
+            
+                
+                    <a href="../../java/nio/buffer.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>5.6.1.</b>
+                        
+                         Buffer
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="5.6.2" data-path="java/nio/channel.html">
+            
+                
+                    <a href="../../java/nio/channel.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>5.6.2.</b>
+                        
+                         Channel
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="5.6.3" data-path="java/nio/Selector.html">
+            
+                
+                    <a href="../../java/nio/Selector.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>5.6.3.</b>
+                        
+                         Selector
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="5.7" data-path="java/gc/README.html">
+            
+                
+                    <a href="../../java/gc/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>5.7.</b>
+                        
+                         java垃圾回收
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="5.7.1" data-path="java/gc/heap.html">
+            
+                
+                    <a href="../../java/gc/heap.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>5.7.1.</b>
+                        
+                         java的内存
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="5.7.2" data-path="java/gc/modle.html">
+            
+                
+                    <a href="../../java/gc/modle.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>5.7.2.</b>
+                        
+                         java内存模型
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="5.7.3" data-path="java/gc/algorithm.html">
+            
+                
+                    <a href="../../java/gc/algorithm.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>5.7.3.</b>
+                        
+                         java gc算法
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="5.7.4" data-path="java/gc/tools.html">
+            
+                
+                    <a href="../../java/gc/tools.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>5.7.4.</b>
+                        
+                         java 内存调优工具
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="5.7.5" data-path="java/gc/argument.html">
+            
+                
+                    <a href="../../java/gc/argument.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>5.7.5.</b>
+                        
+                         java 内核参数
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="6" data-path="network/README.html">
+            
+                
+                    <a href="../../network/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>6.</b>
+                        
+                         网络
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="6.1" data-path="network/tcp/README.html">
+            
+                
+                    <a href="../../network/tcp/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>6.1.</b>
+                        
+                         tcp/ip
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="6.1.1" data-path="network/tcp/mss.html">
+            
+                
+                    <a href="../../network/tcp/mss.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>6.1.1.</b>
+                        
+                         mss
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="6.1.2" data-path="network/tcp/algorithm.html">
+            
+                
+                    <a href="../../network/tcp/algorithm.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>6.1.2.</b>
+                        
+                         tcp常用算法
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="6.1.3" data-path="network/tcp/api.html">
+            
+                
+                    <a href="../../network/tcp/api.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>6.1.3.</b>
+                        
+                         socket api
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="6.1.4" data-path="network/tcp/kernel_argument.html">
+            
+                
+                    <a href="../../network/tcp/kernel_argument.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>6.1.4.</b>
+                        
+                         内核参数
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="6.2" data-path="network/http/README.html">
+            
+                
+                    <a href="../../network/http/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>6.2.</b>
+                        
+                         http
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="6.2.1" data-path="network/http/requestHeader.html">
+            
+                
+                    <a href="../../network/http/requestHeader.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>6.2.1.</b>
+                        
+                         常用请求头
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="6.2.2" data-path="network/http/responseHeader.html">
+            
+                
+                    <a href="../../network/http/responseHeader.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>6.2.2.</b>
+                        
+                         常用响应头
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="6.3" data-path="network/tools/README.html">
+            
+                
+                    <a href="../../network/tools/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>6.3.</b>
+                        
+                         工具
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="6.3.1" data-path="network/tools/netstat.html">
+            
+                
+                    <a href="../../network/tools/netstat.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>6.3.1.</b>
+                        
+                         netstat
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="6.3.2" data-path="network/tools/ss.html">
+            
+                
+                    <a href="../../network/tools/ss.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>6.3.2.</b>
+                        
+                         ss
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="6.3.3" data-path="network/tools/nc.html">
+            
+                
+                    <a href="../../network/tools/nc.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>6.3.3.</b>
+                        
+                         nc
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="7" data-path="other/README.html">
+            
+                
+                    <a href="../../other/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>7.</b>
+                        
+                         other
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="7.1" data-path="other/mysql/mysql.html">
+            
+                
+                    <a href="../../other/mysql/mysql.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>7.1.</b>
+                        
+                         mysql
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="7.2" data-path="other/memory/smp.html">
+            
+                
+                    <a href="../../other/memory/smp.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>7.2.</b>
+                        
+                         SMP for Android
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+
+        
+        <li class="divider"></li>
+        <li>
+            <a href="http://www.gitbook.io/" target="blank" class="gitbook-link">Published using GitBook</a>
+        </li>
+        
+    </ul>
+</div>
+
+    <div class="book-body">
+        <div class="body-inner">
+            <div class="book-header">
+    <!-- Actions Left -->
+    <a href="#" class="btn pull-left toggle-summary" aria-label="Toggle summary"><i class="fa fa-align-justify"></i></a>
+    <a href="#" class="btn pull-left toggle-search" aria-label="Toggle search"><i class="fa fa-search"></i></a>
+    
+    <div id="font-settings-wrapper" class="dropdown pull-left">
+        <a href="#" class="btn toggle-dropdown" aria-label="Toggle font settings"><i class="fa fa-font"></i>
+        </a>
+        <div class="dropdown-menu font-settings">
+    <div class="dropdown-caret">
+        <span class="caret-outer"></span>
+        <span class="caret-inner"></span>
+    </div>
+
+    <div class="buttons">
+        <button type="button" id="reduce-font-size" class="button size-2">A</button>
+        <button type="button" id="enlarge-font-size" class="button size-2">A</button>
+    </div>
+
+    <div class="buttons font-family-list">
+        <button type="button" data-font="0" class="button">Serif</button>
+        <button type="button" data-font="1" class="button">Sans</button>
+    </div>
+
+    <div class="buttons color-theme-list">
+        <button type="button" id="color-theme-preview-0" class="button size-3" data-theme="0">White</button>
+        <button type="button" id="color-theme-preview-1" class="button size-3" data-theme="1">Sepia</button>
+        <button type="button" id="color-theme-preview-2" class="button size-3" data-theme="2">Night</button>
+    </div>
+</div>
+
+    </div>
+
+    <!-- Actions Right -->
+    
+    <div class="dropdown pull-right">
+        <a href="#" class="btn toggle-dropdown" aria-label="Toggle share dropdown"><i class="fa fa-share-alt"></i>
+        </a>
+        <div class="dropdown-menu font-settings dropdown-left">
+            <div class="dropdown-caret">
+                <span class="caret-outer"></span>
+                <span class="caret-inner"></span>
+            </div>
+            <div class="buttons">
+                <button type="button" data-sharing="twitter" class="button">Twitter</button>
+                <button type="button" data-sharing="google-plus" class="button">Google</button>
+                <button type="button" data-sharing="facebook" class="button">Facebook</button>
+                <button type="button" data-sharing="weibo" class="button">Weibo</button>
+                <button type="button" data-sharing="instapaper" class="button">Instapaper</button>
+            </div>
+        </div>
+    </div>
+    
+
+    
+    <a href="#" target="_blank" class="btn pull-right google-plus-sharing-link sharing-link" data-sharing="google-plus" aria-label="Share on Google Plus"><i class="fa fa-google-plus"></i></a>
+    
+    
+    <a href="#" target="_blank" class="btn pull-right facebook-sharing-link sharing-link" data-sharing="facebook" aria-label="Share on Facebook"><i class="fa fa-facebook"></i></a>
+    
+    
+    <a href="#" target="_blank" class="btn pull-right twitter-sharing-link sharing-link" data-sharing="twitter" aria-label="Share on Twitter"><i class="fa fa-twitter"></i></a>
+    
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="../../" >我的笔记</a>
+    </h1>
+</div>
+
+            <div class="page-wrapper" tabindex="-1">
+                <div class="page-inner">
+                
+                
+                    <section class="normal" id="section-gitbook_6">
+                    
+                        <h1 id="memtable">memtable分析</h1>
+<p>memtable是leveldb中非常重要的一块，使用skiplist存储kv节点。与memtable相关的实现文件有memtable.h,memtable.cc,dbformat.h,dbformat.cc.</p>
+<h2 id="memtablekey">与memtable相关的key</h2>
+<h3 id="internalkey">InternalKey</h3>
+<ol>
+<li>InternalKey是由user_key(Slice),sequence number(7 bytes)和value type(1 byte)组合而成的一个字符串。在向memtable中添加数据的时候，会拼接一个InternalKey，然后将VarintLength(InternalKey) + InternalKey + VarintLength(value) + value拼接在一起，作为key存储到skiplist中。</li>
+</ol>
+<h3 id="parsedinternalkey">ParsedInternalKey</h3>
+<ol>
+<li><p>ParsedInternalKey是InternalKey的一个内部结构的展示，具体的定义如下：</p>
+<pre><code class="lang-c"> <span class="hljs-keyword">struct</span> ParsedInternalKey {
+     Slice user_key;
+     SequenceNumber sequence;
+     ValueType type;
+
+     ParsedInternalKey() { }  <span class="hljs-comment">// Intentionally left uninitialized (for speed)</span>
+     ParsedInternalKey(<span class="hljs-keyword">const</span> Slice&amp; u, <span class="hljs-keyword">const</span> SequenceNumber&amp; seq, ValueType t)
+         : user_key(u), sequence(seq), type(t) { }
+     std::<span class="hljs-built_in">string</span> DebugString() <span class="hljs-keyword">const</span>;
+ };
+</code></pre>
+</li>
+<li>InternalKey和ParsedInternalKey之间转换的两个函数如下：<pre><code class="lang-c"> <span class="hljs-comment">// InternalKey to ParsedInternalKey</span>
+ <span class="hljs-keyword">inline</span> <span class="hljs-keyword">bool</span> ParseInternalKey(<span class="hljs-keyword">const</span> Slice&amp; internal_key, ParsedInternalKey* result) {
+     <span class="hljs-keyword">const</span> size_t n = internal_key.size();
+     <span class="hljs-keyword">if</span> (n &lt; <span class="hljs-number">8</span>) <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+     uint64_t num = DecodeFixed64(internal_key.data() + n - <span class="hljs-number">8</span>);
+     <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">char</span> c = num &amp; <span class="hljs-number">0xff</span>;
+     result-&gt;sequence = num &gt;&gt; <span class="hljs-number">8</span>;
+     result-&gt;type = <span class="hljs-keyword">static_cast</span>&lt;ValueType&gt;(c);
+     result-&gt;user_key = Slice(internal_key.data(), n - <span class="hljs-number">8</span>);
+     <span class="hljs-keyword">return</span> (c &lt;= <span class="hljs-keyword">static_cast</span>&lt;<span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">char</span>&gt;(kTypeValue));
+ }
+ <span class="hljs-comment">// ParsedInternalKey to InternalKey</span>
+ <span class="hljs-keyword">void</span> AppendInternalKey(std::<span class="hljs-built_in">string</span>* result, <span class="hljs-keyword">const</span> ParsedInternalKey&amp; key) {
+     result-&gt;append(key.user_key.data(), key.user_key.size());
+     PutFixed64(result, PackSequenceAndType(key.sequence, key.type));
+ }
+</code></pre>
+</li>
+</ol>
+<h3 id="lookupkey">LookupKey</h3>
+<ol>
+<li>LookupKey是memtable的查询接口所使用的key.</li>
+<li><p>LookupKey的定义如下：</p>
+<pre><code class="lang-c"> <span class="hljs-keyword">class</span> LookupKey {
+ <span class="hljs-keyword">public</span>:
+     <span class="hljs-comment">// Initialize *this for looking up user_key at a snapshot with</span>
+     <span class="hljs-comment">// the specified sequence number.</span>
+     LookupKey(<span class="hljs-keyword">const</span> Slice&amp; user_key, SequenceNumber sequence);
+
+     ~LookupKey();
+
+     <span class="hljs-comment">// Return a key suitable for lookup in a MemTable.</span>
+     Slice memtable_key() <span class="hljs-keyword">const</span> { <span class="hljs-keyword">return</span> Slice(start_, end_ - start_); }
+
+     <span class="hljs-comment">// Return an internal key (suitable for passing to an internal iterator)</span>
+     Slice internal_key() <span class="hljs-keyword">const</span> { <span class="hljs-keyword">return</span> Slice(kstart_, end_ - kstart_); }
+
+     <span class="hljs-comment">// Return the user key</span>
+     Slice user_key() <span class="hljs-keyword">const</span> { <span class="hljs-keyword">return</span> Slice(kstart_, end_ - kstart_ - <span class="hljs-number">8</span>); }
+
+ <span class="hljs-keyword">private</span>:
+     <span class="hljs-comment">// We construct a char array of the form:</span>
+     <span class="hljs-comment">//    klength  varint32               &lt;-- start_</span>
+     <span class="hljs-comment">//    userkey  char[klength]          &lt;-- kstart_</span>
+     <span class="hljs-comment">//    tag      uint64</span>
+     <span class="hljs-comment">//                                    &lt;-- end_</span>
+     <span class="hljs-comment">// The array is a suitable MemTable key.</span>
+     <span class="hljs-comment">// The suffix starting with "userkey" can be used as an InternalKey.</span>
+     <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>* start_;
+     <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>* kstart_;
+     <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>* end_;
+     <span class="hljs-keyword">char</span> space_[<span class="hljs-number">200</span>];      <span class="hljs-comment">//存储格式：VarintLength() + (user_key，sequence,kValueTypeForSeek)</span>
+
+     <span class="hljs-comment">// No copying allowed</span>
+     LookupKey(<span class="hljs-keyword">const</span> LookupKey&amp;);
+     <span class="hljs-keyword">void</span> <span class="hljs-keyword">operator</span>=(<span class="hljs-keyword">const</span> LookupKey&amp;);
+ };
+</code></pre>
+</li>
+<li>有LookupKey可以快速的转换成InternalKey，MemTableKey.</li>
+</ol>
+<h2 id="memtable">MemTable</h2>
+<ol>
+<li>在Leveldb中，所有内存中的KV数据都存储在Memtable中，物理disk则存储在SSTable中。在系统运行过程中，如果Memtable中的数据占用内存到达指定值(Options.write_buffer_size)，则Leveldb就自动将Memtable转换为Immutable Memtable，并自动生成新的Memtable，也就是Copy-On-Write机制了。</li>
+<li>Immutable Memtable则被新的线程Dump到磁盘中，Dump结束则该Immutable Memtable就可以释放了。因名知意，Immutable Memtable是只读的。 所以可见，最新的数据都是存储在Memtable中的，Immutable Memtable和物理SSTable则是某个时点的数据。</li>
+<li>Memtable提供了写入KV记录，删除以及读取KV记录的接口，但是事实上Memtable并不执行真正的删除操作,删除某个Key的Value在Memtable内是作为插入一条记录实施的，但是会打上一个Key的删除标记，真正的删除操作在后面的 Compaction过程中，lazy delete。</li>
+<li><p>MemTable的定义如下：</p>
+<pre><code class="lang-c"> <span class="hljs-keyword">class</span> MemTable {
+ <span class="hljs-keyword">public</span>:
+     <span class="hljs-comment">// MemTables are reference counted.  The initial reference count</span>
+     <span class="hljs-comment">// is zero and the caller must call Ref() at least once.</span>
+     <span class="hljs-comment">// 引用计数</span>
+     <span class="hljs-keyword">explicit</span> MemTable(<span class="hljs-keyword">const</span> InternalKeyComparator&amp; comparator);
+
+     <span class="hljs-comment">// Increase reference count.</span>
+     <span class="hljs-keyword">void</span> Ref() { ++refs_; }
+
+     <span class="hljs-comment">// Drop reference count.  Delete if no more references exist.</span>
+     <span class="hljs-keyword">void</span> Unref() {
+         --refs_;
+         assert(refs_ &gt;= <span class="hljs-number">0</span>);
+         <span class="hljs-keyword">if</span> (refs_ &lt;= <span class="hljs-number">0</span>) {
+             <span class="hljs-keyword">delete</span> <span class="hljs-keyword">this</span>;
+         }
+     }
+     <span class="hljs-comment">//  .....</span>
+ <span class="hljs-keyword">private</span>:
+     ~MemTable();  <span class="hljs-comment">// Private since only Unref() should be used to delete it</span>
+
+     <span class="hljs-keyword">struct</span> KeyComparator {
+         <span class="hljs-keyword">const</span> InternalKeyComparator comparator;
+         <span class="hljs-keyword">explicit</span> KeyComparator(<span class="hljs-keyword">const</span> InternalKeyComparator&amp; c) : comparator(c) { }
+         <span class="hljs-keyword">int</span> <span class="hljs-keyword">operator</span>()(<span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>* a, <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>* b) <span class="hljs-keyword">const</span>;
+     };
+
+     <span class="hljs-keyword">typedef</span> SkipList&lt;<span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>*, KeyComparator&gt; Table;
+
+     KeyComparator comparator_;
+     <span class="hljs-keyword">int</span> refs_;
+     Arena arena_;
+     Table table_;   <span class="hljs-comment">// 数据实际存储在SkipList中</span>
+ }
+</code></pre>
+</li>
+<li>MemTable的Add接口实现：<pre><code class="lang-c"> <span class="hljs-keyword">void</span> MemTable::Add(SequenceNumber s, ValueType type,
+                    <span class="hljs-keyword">const</span> Slice&amp; key,
+                    <span class="hljs-keyword">const</span> Slice&amp; value) {
+   size_t key_size = key.size();
+   size_t val_size = value.size();
+   size_t internal_key_size = key_size + <span class="hljs-number">8</span>;
+   <span class="hljs-comment">// internal_key: | User key (string) | sequence number (7 bytes) | value type (1 byte) |</span>
+   <span class="hljs-keyword">const</span> size_t encoded_len =
+       VarintLength(internal_key_size) + internal_key_size +
+       VarintLength(val_size) + val_size;
+   <span class="hljs-keyword">char</span>* buf = arena_.Allocate(encoded_len);
+   <span class="hljs-keyword">char</span>* p = EncodeVarint32(buf, internal_key_size);
+   <span class="hljs-built_in">memcpy</span>(p, key.data(), key_size);
+   p += key_size;
+   EncodeFixed64(p, (s &lt;&lt; <span class="hljs-number">8</span>) | type);
+   p += <span class="hljs-number">8</span>;
+   p = EncodeVarint32(p, val_size);
+   <span class="hljs-built_in">memcpy</span>(p, value.data(), val_size);
+   assert((p + val_size) - buf == encoded_len);
+   <span class="hljs-comment">// 将key和value打包后放到skiplist中</span>
+   table_.Insert(buf);
+ }
+</code></pre>
+</li>
+<li>MemTable的Get接口：<pre><code class="lang-c"> <span class="hljs-comment">// 根据LookupKey查找数据</span>
+ <span class="hljs-keyword">bool</span> MemTable::Get(<span class="hljs-keyword">const</span> LookupKey&amp; key, std::<span class="hljs-built_in">string</span>* value, Status* s) {
+     Slice memkey = key.memtable_key(); <span class="hljs-comment">//根据LookupKey获取MemTableKey</span>
+     Table::Iterator iter(&amp;table_);
+     iter.Seek(memkey.data()); <span class="hljs-comment">//根据MemTableKey在SkipList中超找</span>
+     <span class="hljs-keyword">if</span> (iter.Valid()) {
+         <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>* entry = iter.key();
+         uint32_t key_length;
+         <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>* key_ptr = GetVarint32Ptr(entry, entry+<span class="hljs-number">5</span>, &amp;key_length);
+         <span class="hljs-keyword">if</span> (comparator_.comparator.user_comparator()-&gt;Compare(
+                 Slice(key_ptr, key_length - <span class="hljs-number">8</span>),
+                 key.user_key()) == <span class="hljs-number">0</span>) {
+             <span class="hljs-comment">// Correct user key</span>
+             <span class="hljs-keyword">const</span> uint64_t tag = DecodeFixed64(key_ptr + key_length - <span class="hljs-number">8</span>);
+             <span class="hljs-keyword">switch</span> (<span class="hljs-keyword">static_cast</span>&lt;ValueType&gt;(tag &amp; <span class="hljs-number">0xff</span>)) {
+             <span class="hljs-keyword">case</span> kTypeValue: {
+                 <span class="hljs-comment">//从SkipList的Node值中获取value</span>
+                 Slice v = GetLengthPrefixedSlice(key_ptr + key_length);
+                 value-&gt;assign(v.data(), v.size());
+                 <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+             }
+             <span class="hljs-keyword">case</span> kTypeDeletion:
+                 *s = Status::NotFound(Slice());
+                 <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+             }
+         }
+     }
+     <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+ }
+</code></pre>
+</li>
+</ol>
+
+                    
+                    </section>
+                
+                
+                </div>
+            </div>
+        </div>
+
+        
+        <a href="../../leveldb/sourcecode/lru_cache.html" class="navigation navigation-prev " aria-label="Previous page: LRUcache的实现"><i class="fa fa-angle-left"></i></a>
+        
+        
+        <a href="../../leveldb/sourcecode/writer.html" class="navigation navigation-next " aria-label="Next page: Writer的实现"><i class="fa fa-angle-right"></i></a>
+        
+    </div>
+</div>
+
+        
+<script src="../../gitbook/app.js"></script>
+
+    
+    <script src="https://cdn.mathjax.org/mathjax/2.4-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+    
+    <script src="../../gitbook/plugins/gitbook-plugin-mathjax/plugin.js"></script>
+    
+
+    
+    <script src="../../gitbook/plugins/gitbook-plugin-livereload/plugin.js"></script>
+    
+
+<script>
+require(["gitbook"], function(gitbook) {
+    var config = {"fontSettings":{"theme":null,"family":"sans","size":2}};
+    gitbook.start(config);
+});
+</script>
+
+        
+    </body>
+    
+</html>
