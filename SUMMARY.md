@@ -36,6 +36,8 @@
         - [基本操作](leveldb/usage/usage.md)
         - [demo](leveldb/usage/demo.md)
     - [leveldb的实现](leveldb/implementation/README.md)
+        - [leveldb优点](leveldb/implementation/advantages.md)
+        - [leveldb架构](leveldb/implementation/architecture.md)
     - [leveldb源码分析](leveldb/sourcecode/README.md)
         - [Arena的实现](leveldb/sourcecode/arena.md)
         - [skiplist的实现](leveldb/sourcecode/skiplist.md)
